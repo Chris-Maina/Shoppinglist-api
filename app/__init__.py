@@ -96,6 +96,50 @@ def create_app(config_name):
                                            " to /auth/register/"})
             return make_response(response), 200
 
+    @app.route('/auth/login/', methods=['POST', 'GET'])
+    def dummy_login():
+        """ Handle user login"""
+        if request.method == 'POST':
+            email = str(request.data.get('email'))
+            password = str(request.data.get('password'))
+            if email == "":
+                # check if email is empty, status code bad request 400
+                response = {
+                    'message': 'Please fill email field.'
+                }
+                return make_response(jsonify(response)), 400
+            elif password == "":
+                # check if password is empty, status code bad request 400
+                response = {
+                    'message': 'Please fill password field.'
+                }
+                return make_response(jsonify(response)), 400
+            # Query to see if a user already exists
+            user = User.query.filter_by(email=email).first()
+            # check is user object has sth and password is correct
+            if user and user.password_is_valid(password):
+                # generate an access token
+                access_token = user.generate_token(user.id)
+                # if an access token is generated, success status_code=OK!
+                if access_token:
+                    response = {
+                        'message': "You are logged in successfully",
+                        'access_token': access_token.decode()
+                    }
+                    return make_response(jsonify(response)), 200
+            else:
+                # User does not exist, status_code=UNAUTHORIZED
+                response = {
+                    'message': "Invalid email or password, Please try again"
+                }
+                return make_response(jsonify(response)), 401
+        else:
+            # request method GET
+            response = jsonify({"message": "To login,"
+                                           "send a POST request to /auth/login/"})
+            return make_response(response), 200
+
+
 
     @app.route('/shoppinglists/', methods=['POST', 'GET'])
     def dummy_shoppinglists():
