@@ -61,3 +61,11 @@ class UserTestCases(unittest.TestCase):
         self.assertIn(
             "Please fill password", str(res.data))
 
+    def test_password_length(self):
+        """Test password length"""
+        res = self.client().post('/auth/register/',
+                                 data={'email': 'mainachris@gmail.com', 'password': 'pass'})
+        self.assertEqual(res.status_code, 403)
+        self.assertIn(
+            "password should be atleast 6 characters", str(res.data))
+
