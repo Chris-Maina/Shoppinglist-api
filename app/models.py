@@ -22,7 +22,7 @@ class User(db.Model):
     def __init__(self, email, password):
         """Initialize the user with an email and password."""
         self.email = email
-        self.password = Bcrypt.generate_password_hash(password).decode()
+        self.password = Bcrypt().generate_password_hash(password).decode()
 
     def password_is_valid(self, password):
         """ Check password against it's hash to validate user's password"""
