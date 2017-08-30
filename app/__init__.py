@@ -20,6 +20,16 @@ def create_app(config_name):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
 
+    @app.route('/')
+    def dummy_index():
+        """Index page"""
+        return jsonify({"message": "Welcome to the Shoppinglist API."
+                                   " Register a new user by sending a"
+                                   " POST request to /auth/register/. "
+                                   "Login by sending a POST request to"
+                                   " /auth/login/ to get started."})
+
+
     @app.route('/shoppinglists/', methods=['POST', 'GET'])
     def shoppinglists():
         """ Handles POST and GET methods"""
