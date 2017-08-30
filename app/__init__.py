@@ -10,6 +10,7 @@ from instance.config import app_config
 # initialize sql-alchemy
 db = SQLAlchemy()
 
+
 def create_app(config_name):
     """Initialize app"""
     from app.models import Shoppinglist
@@ -41,18 +42,17 @@ def create_app(config_name):
             results = []
             for shoplist in shoppinglists:
                 item = {
-                   'id': shoplist.id,
+                    'id': shoplist.id,
                     'name': shoplist.name,
                     'date_created': shoplist.date_created,
-                    'date_modified': shoplist.date_modified 
+                    'date_modified': shoplist.date_modified
                 }
                 results.append(item)
-            
             response = jsonify(results)
             response.status_code = 200
             return response
-    
-    @app.route('/shoppinglists/<int: id>', methods=['PUT', 'GET', 'DELETE'])
+
+    @app.route('/shoppinglists/<int:id>', methods=['PUT', 'GET', 'DELETE'])
     def shoppinglist_edit(id, **kwargs):
         # retrieve a shoppinglist by it's ID
         shoppinglist = Shoppinglist.query.filter_by(id=id).first()
@@ -62,6 +62,29 @@ def create_app(config_name):
         if request.method == 'DELETE':
             shoppinglist.delete()
             return {
-            "message": "Shopping list {} deleted successfully".format(shoppinglist.id)
-        }, 200
+                "message": "Shopping list {} deleted successfully".format(shoppinglist.id)
+            }, 200
+        elif request.method == 'PUT':
+            name = str(request.data.get('name', ''))
+            shoppinglist.name = name
+            shoppinglist.save()
+            response = jsonify({
+                'id': shoppinglist.id,
+                'name': shoppinglist.name,
+                'date_created': shoppinglist.date_created,
+                'date_modified': shoppinglist.date_modified
+            })
+            response.status_code = 200
+            return response
+        else:
+            # GET
+            response = jsonify({
+                'id': shoppinglist.id,
+                'name': shoppinglist.name,
+                'date_created': shoppinglist.date_created,
+                'date_modified': shoppinglist.date_modified
+            })
+            response.status_code = 200
+            return response
+
     return app
