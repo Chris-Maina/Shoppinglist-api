@@ -37,13 +37,14 @@ def create_app(config_name):
         if request.method == 'POST':
             email = str(request.data.get('email'))
             password = str(request.data.get('password'))
+            regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
             if email == "":
                 # check if email is empty, status code bad request 400
                 response = {
                     'message': 'Please fill email field.'
                 }
                 return make_response(jsonify(response)), 400
-            elif not re.match("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email):
+            elif not re.match(regex, email):
                 # check to see if email meets the above regular expression
                 response = {
                     'message': 'Please provide a valid email address.'
