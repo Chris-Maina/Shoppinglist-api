@@ -320,11 +320,12 @@ def create_app(config_name):
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
                 # retrieve  item using its ID
-                item = Shoppingitem.query.filter_by(id=tid, in_shoppinglist=slid, created_by=user_id).first()
+                item = Shoppingitem.query.filter_by(
+                    id=tid, in_shoppinglist=slid, created_by=user_id).first()
                 if not item:
                     # if empty raise a 404,Not found error. No item with id=tid
                     response = {
-                        'message': "No such activity"
+                        'message': "No such item"
                     }
                     return make_response(jsonify(response)), 404
                 if request.method == 'PUT':
@@ -355,4 +356,40 @@ def create_app(config_name):
                 }
                 return make_response(jsonify(response)), 401
 
+    @app.route('/shoppinglists/<int:slid>/items/<int:tid>', methods=['DELETE', 'GET'])
+    def dummy_item_delete_get(tid, slid):
+        """Endpoint handles delete and get a shopping item"""
+        auth_header = request.headers.get('Authorization')
+        access_token = auth_header.split(" ")[1]
+
+        if access_token:
+            # decode the token and get the User ID
+            user_id = User.decode_token(access_token)
+            if not isinstance(user_id, str):
+                # retrieve  item using its ID
+                item = Shoppingitem.query.filter_by(
+                    id=tid, in_shoppinglist=slid, created_by=user_id).first()
+                if not item:
+                    # if empty raise a 404,Not found error. No item with id=tid
+                    response = {
+                        'message': "No such item"
+                    }
+                    return make_response(jsonify(response)), 404
+
+                # handle DELETE
+                elif request.method == 'DELETE':
+                    item.delete()
+                    response = jsonify({
+                        'message': "item {} deleted".format(item.name)
+                    })
+                    return make_response(response), 200
+
+                
+            else:
+                # user_id is a string, so the payload is an error message
+                message = user_id
+                response = {
+                    'message': message
+                }
+                return make_response(jsonify(response)), 401
     return app
