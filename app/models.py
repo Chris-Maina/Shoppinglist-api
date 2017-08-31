@@ -131,12 +131,12 @@ class Shoppingitem(db.Model):
     @staticmethod
     def get_all():
         """Get all shopping items"""
-        return Shoppingitems.query.all()
+        return Shoppingitem.query.all()
 
     def delete(self):
         """Delete a shopping item"""
         db.session.delete(self)
-        db.session.commit
+        db.session.commit()
 
     def __repr__(self):
         return "<Shoppingitem: {}>".format(self.name)
