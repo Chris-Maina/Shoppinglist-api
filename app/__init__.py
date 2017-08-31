@@ -144,68 +144,102 @@ def create_app(config_name):
     @app.route('/shoppinglists/', methods=['POST', 'GET'])
     def dummy_shoppinglists():
         """ Handles POST and GET methods"""
-        if request.method == "POST":
-            name = str(request.data.get('name', ''))
-            if name:
-                shoppinglist = Shoppinglist(name=name)
-                shoppinglist.save()
-                response = jsonify({
-                    'id': shoppinglist.id,
-                    'name': shoppinglist.name,
-                    'date_created': shoppinglist.date_created,
-                    'date_modified': shoppinglist.date_modified
-                })
-                response.status_code = 201
-                return response
-        else:
-            # GET
-            shoppinglists = Shoppinglist.get_all()
-            results = []
-            for shoplist in shoppinglists:
-                item = {
-                    'id': shoplist.id,
-                    'name': shoplist.name,
-                    'date_created': shoplist.date_created,
-                    'date_modified': shoplist.date_modified
+        # Get the access token from the header
+        auth_header = request.headers.get('Authorization')
+        access_token = auth_header.split(" ")[1]
+
+        if access_token:
+         # decode the token and get the User ID
+            user_id = User.decode_token(access_token)
+            if not isinstance(user_id, str):
+                #  the user is authenticated
+
+                if request.method == "POST":
+                    name = str(request.data.get('name', ''))
+                    if name:
+                        shoppinglist = Shoppinglist(name=name)
+                        shoppinglist.save()
+                        response = jsonify({
+                            'id': shoppinglist.id,
+                            'name': shoppinglist.name,
+                            'date_created': shoppinglist.date_created,
+                            'date_modified': shoppinglist.date_modified
+                        })
+                        response.status_code = 201
+                        return response
+                else:
+                    # GET
+                    shoppinglists = Shoppinglist.get_all()
+                    results = []
+                    for shoplist in shoppinglists:
+                        item = {
+                            'id': shoplist.id,
+                            'name': shoplist.name,
+                            'date_created': shoplist.date_created,
+                            'date_modified': shoplist.date_modified
+                        }
+                        results.append(item)
+                    response = jsonify(results)
+                    response.status_code = 200
+                    return response
+            else:
+                # user_id is a string, so the payload is an error message
+                message = user_id
+                response = {
+                    'message': message
                 }
-                results.append(item)
-            response = jsonify(results)
-            response.status_code = 200
-            return response
+                return make_response(jsonify(response)), 401
 
     @app.route('/shoppinglists/<int:id>', methods=['PUT', 'GET', 'DELETE'])
-    def shoppinglist_edit(id, **kwargs):
-        # retrieve a shoppinglist by it's ID
-        shoppinglist = Shoppinglist.query.filter_by(id=id).first()
-        if not shoppinglist:
-            # No shopping list ,raise error 404 status code not found
-            abort(404)
-        if request.method == 'DELETE':
-            shoppinglist.delete()
-            return {
-                "message": "Shopping list {} deleted successfully".format(shoppinglist.id)
-            }, 200
-        elif request.method == 'PUT':
-            name = str(request.data.get('name', ''))
-            shoppinglist.name = name
-            shoppinglist.save()
-            response = jsonify({
-                'id': shoppinglist.id,
-                'name': shoppinglist.name,
-                'date_created': shoppinglist.date_created,
-                'date_modified': shoppinglist.date_modified
-            })
-            response.status_code = 200
-            return response
-        else:
-            # GET
-            response = jsonify({
-                'id': shoppinglist.id,
-                'name': shoppinglist.name,
-                'date_created': shoppinglist.date_created,
-                'date_modified': shoppinglist.date_modified
-            })
-            response.status_code = 200
-            return response
+    def dummy_shoppinglist_edit(id, **kwargs):
+        """Handles shopping list CREATE, DELETE and EDIT"""
+        # Get the access token from the header
+        auth_header = request.headers.get('Authorization')
+        access_token = auth_header.split(" ")[1]
+
+        if access_token:
+         # decode the token and get the User ID
+            user_id = User.decode_token(access_token)
+            if not isinstance(user_id, str):
+                # the user is authenticated
+                # retrieve a shoppinglist by it's ID
+                shoppinglist = Shoppinglist.query.filter_by(id=id).first()
+                if not shoppinglist:
+                    # No shopping list ,raise error 404 status code not found
+                    abort(404)
+                if request.method == 'DELETE':
+                    shoppinglist.delete()
+                    return {
+                        "message": "Shopping list {} deleted successfully".format(shoppinglist.id)
+                    }, 200
+                elif request.method == 'PUT':
+                    name = str(request.data.get('name', ''))
+                    shoppinglist.name = name
+                    shoppinglist.save()
+                    response = jsonify({
+                        'id': shoppinglist.id,
+                        'name': shoppinglist.name,
+                        'date_created': shoppinglist.date_created,
+                        'date_modified': shoppinglist.date_modified
+                    })
+                    response.status_code = 200
+                    return response
+                else:
+                    # GET
+                    response = jsonify({
+                        'id': shoppinglist.id,
+                        'name': shoppinglist.name,
+                        'date_created': shoppinglist.date_created,
+                        'date_modified': shoppinglist.date_modified
+                    })
+                    response.status_code = 200
+                    return response
+            else:
+                # user_id is a string, so the payload is an error message
+                message = user_id
+                response = {
+                    'message': message
+                }
+                return make_response(jsonify(response)), 401
 
     return app
