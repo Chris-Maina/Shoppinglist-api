@@ -384,7 +384,17 @@ def create_app(config_name):
                     })
                     return make_response(response), 200
 
-                
+                # handle GET
+                elif request.method == 'GET':
+                    response = jsonify({
+                        "id": item.id,
+                        "name": item.name,
+                        "date_created": item.date_created,
+                        "date_modified": item.date_modified,
+                        "in_shoppinglist": item.in_shoppinglist,
+                        "created_by": item.created_by
+                    })
+                    return make_response(response), 200
             else:
                 # user_id is a string, so the payload is an error message
                 message = user_id
