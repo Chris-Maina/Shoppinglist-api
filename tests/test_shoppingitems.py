@@ -184,6 +184,23 @@ class ShoppingItemsTestCases(unittest.TestCase):
                                         Authorization="Bearer " + self.access_token))
         self.assertEqual(res2.status_code, 404)
         self.assertIn("No such item", str(res2.data))
+    def test_api_can_get_item(self):
+        """ Test API can delete an item """
+
+        res = self.register_login_user_create_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=self.shoppingitem)
+        self.assertEqual(res.status_code, 201)
+        # get item
+        res2 = self.client().get("/shoppinglists/1/items/1",
+                                    headers=dict(
+                                        Authorization="Bearer " + self.access_token))
+        self.assertEqual(res2.status_code, 200)
+        self.assertIn("Bread", str(res2.data))
 
     def tearDown(self):
         """teardown all initialized variables."""
