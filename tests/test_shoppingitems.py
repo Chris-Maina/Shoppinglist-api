@@ -74,6 +74,20 @@ class ShoppingItemsTestCases(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Bread", str(response.data))
 
+    def test_item_creation_twice(self):
+        """ Test API gives an error on item creation twice """
+        res = self.register_login_user_create_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items", headers=dict(Authorization="Bearer " + self.access_token),
+                                 data=self.shoppingitem)
+        self.assertEqual(res.status_code, 201)
+        res2 = self.client().post("/shoppinglists/1/items", headers=dict(Authorization="Bearer " + self.access_token),
+                                  data=self.shoppingitem)
+        self.assertEqual(res2.status_code, 302)
+        self.assertIn("Item name already exists", str(res2.data))
+    
+
     def tearDown(self):
         """teardown all initialized variables."""
         with self.app.app_context():
