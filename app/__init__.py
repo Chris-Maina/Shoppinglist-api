@@ -140,8 +140,6 @@ def create_app(config_name):
                                            "send a POST request to /auth/login/"})
             return make_response(response), 200
 
-
-
     @app.route('/shoppinglists/', methods=['POST', 'GET'])
     def dummy_shoppinglists():
         """ Handles POST and GET methods"""
@@ -266,7 +264,8 @@ def create_app(config_name):
                             return make_response(response), 302
                         else:
                             # item does not exist, create and save the item
-                            shoppingitem = Shoppingitem(name=name, in_shoppinglist=slid, created_by=user_id)
+                            shoppingitem = Shoppingitem(
+                                name=name, in_shoppinglist=slid, created_by=user_id)
                             shoppingitem.save()
                             response = jsonify({
                                 "id": shoppingitem.id,
@@ -287,7 +286,8 @@ def create_app(config_name):
                 else:
                     # request.method == 'GET'
                     # get all shopping items for a shoppinglist and user
-                    items = Shoppingitem.query.filter_by(in_shoppinglist=slid, created_by=user_id)
+                    items = Shoppingitem.query.filter_by(
+                        in_shoppinglist=slid, created_by=user_id)
                     results = []
                     for item in items:
                         obj = {
@@ -308,4 +308,51 @@ def create_app(config_name):
                     'message': message
                 }
                 return make_response(jsonify(response)), 401
+
+    @app.route('/shoppinglists/<int:slid>/items/<int:tid>', methods=['PUT'])
+    def dummy_item_edit(tid, slid):
+        """Endpoint handles editing a shopping item"""
+        auth_header = request.headers.get('Authorization')
+        access_token = auth_header.split(" ")[1]
+
+        if access_token:
+            # decode the token and get the User ID
+            user_id = User.decode_token(access_token)
+            if not isinstance(user_id, str):
+                # retrieve  item using its ID
+                item = Shoppingitem.query.filter_by(id=tid, in_shoppinglist=slid, created_by=user_id).first()
+                if not item:
+                    # if empty raise a 404,Not found error. No item with this in_shoppinglist=slid, created_by=user_id
+                    response = {
+                        'message': "No such activity"
+                    }
+                    return make_response(jsonify(response)), 404
+                if request.method == 'PUT':
+                    # obtain new name from request
+                    name = str(request.data.get('name', ''))
+                    if not name:
+                        # no name, status code=bad request
+                        response = {
+                            'message': "Please enter an item name"
+                        }
+                        return make_response(jsonify(response)), 400
+                    item.name = name
+                    item.save()
+                    response = jsonify({
+                        "id": item.id,
+                        "name": item.name,
+                        "date_created": item.date_created,
+                        "date_modified": item.date_modified,
+                        "in_shoppinglist": item.in_shoppinglist,
+                        "created_by": item.created_by
+                    })
+                    return make_response(response), 200
+            else:
+                # user_id is a string, so the payload is an error message
+                message = user_id
+                response = {
+                    'message': message
+                }
+                return make_response(jsonify(response)), 401
+
     return app
