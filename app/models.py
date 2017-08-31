@@ -117,9 +117,11 @@ class Shoppingitem(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey(User.id))
     in_shoppinglist = db.Column(db.Integer, db.ForeignKey(Shoppinglist.id))
 
-    def __init__(self, name):
-        """Initialize a shopping item with a name"""
+    def __init__(self, name, in_shoppinglist, created_by):
+        """Initialize a shopping item with a name, shopping list and user"""
         self.name = name
+        self.in_shoppinglist = in_shoppinglist
+        self.created_by = created_by
 
     def save(self):
         """Add and save a shopping item"""
