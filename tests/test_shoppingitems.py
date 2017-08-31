@@ -122,6 +122,19 @@ class ShoppingItemsTestCases(unittest.TestCase):
                                  data=item)
         self.assertEqual(res2.status_code, 200)
         self.assertIn("sugar", str(res2.data))
+    
+    def test_api_can_edit_non_existing_item(self):
+        """ Test API can edit a non existing item """
+        item = {'name': 'sugar'}
+        res = self.register_login_user_create_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # edit non-existing item
+        res2 = self.client().put("/shoppinglists/1/items/1",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=item)
+        self.assertEqual(res2.status_code, 404)
+        self.assertIn("No such item", str(res2.data))
 
     def tearDown(self):
         """teardown all initialized variables."""
