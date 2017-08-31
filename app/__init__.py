@@ -322,7 +322,7 @@ def create_app(config_name):
                 # retrieve  item using its ID
                 item = Shoppingitem.query.filter_by(id=tid, in_shoppinglist=slid, created_by=user_id).first()
                 if not item:
-                    # if empty raise a 404,Not found error. No item with this in_shoppinglist=slid, created_by=user_id
+                    # if empty raise a 404,Not found error. No item with id=tid
                     response = {
                         'message': "No such activity"
                     }
