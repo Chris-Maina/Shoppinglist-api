@@ -162,20 +162,50 @@ def create_app(config_name):
                             'id': shoppinglist.id,
                             'name': shoppinglist.name,
                             'date_created': shoppinglist.date_created,
-                            'date_modified': shoppinglist.date_modified
+                            'date_modified': shoppinglist.date_modified,
+                            'created_by': user_id
                         })
                         response.status_code = 201
                         return response
                 else:
-                    # GET
-                    shoppinglists = Shoppinglist.get_all()
+                    # GET request
+                    # initialize search query
+                    search_query = request.args.get("q")
                     results = []
+                    if search_query:
+                        # ?q is supplied sth
+                        search_results = Shoppinglist.query.filter(Shoppinglist.name.ilike('%' + search_query + '%')).filter_by(created_by=user_id)
+                        if search_results:
+                            print search_results
+                            # search_results contain sth
+                            for shopping in search_results:
+                                
+                                item = {
+                                    'id': shopping.id,
+                                    'name': shopping.name,
+                                    'date_created': shopping.date_created,
+                                    'date_modified': shopping.date_modified,
+                                    'created_by': shopping.created_by
+                                }
+                                results.append(item)
+                            response = jsonify(results)
+                            return make_response(response), 200
+                        else:
+                            # search_results does not contain anything, status code=Not found
+                            response = {
+                                'message': "Shopping list name does not exist"
+                            }
+                            return make_response(jsonify(response)), 404
+
+                    shoppinglists = Shoppinglist.get_all()
+
                     for shoplist in shoppinglists:
                         item = {
                             'id': shoplist.id,
                             'name': shoplist.name,
                             'date_created': shoplist.date_created,
-                            'date_modified': shoplist.date_modified
+                            'date_modified': shoplist.date_modified,
+                            'created_by': user_id
                         }
                         results.append(item)
                     response = jsonify(results)
