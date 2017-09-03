@@ -45,6 +45,22 @@ class ShoppinglistTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertIn('Back to', str(response.data))
 
+    def test_shoppinglist_search(self):
+        """ Test API can search a shopping list, GET"""
+        # Register,login user and get access token
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+
+        # create a shoppinglist
+        response = self.client().post('/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+                                      data=self.shoppinglist)
+        # Search shopping list
+        response = self.client().get("/shoppinglists/?q=Back",
+                                     headers=dict(Authorization="Bearer " + access_token))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("to school", str(response.data))
+
     def test_api_can_get_all_shoppinglists(self):
         """Test API can get a shoppinglist, GET """
         # Register,login user and get access token
@@ -91,7 +107,8 @@ class ShoppinglistTestCase(unittest.TestCase):
         response = self.client().put(
             '/shoppinglists/1', headers=dict(Authorization="Bearer " + access_token), data={'name': 'Christmass shopping'})
         self.assertEqual(response.status_code, 200)
-        res = self.client().get('/shoppinglists/1',headers=dict(Authorization="Bearer " + access_token))
+        res = self.client().get('/shoppinglists/1',
+                                headers=dict(Authorization="Bearer " + access_token))
         self.assertIn('Christmass', str(res.data))
 
     def test_shoppinglist_deletion(self):
@@ -108,7 +125,8 @@ class ShoppinglistTestCase(unittest.TestCase):
             '/shoppinglists/1', headers=dict(Authorization="Bearer " + access_token))
         self.assertEqual(response.status_code, 200)
         # Test to see if it exists, should return a 404
-        result = self.client().get('/shoppinglists/1', headers=dict(Authorization="Bearer " + access_token))
+        result = self.client().get('/shoppinglists/1',
+                                   headers=dict(Authorization="Bearer " + access_token))
         self.assertEqual(result.status_code, 404)
 
     def tearDown(self):
