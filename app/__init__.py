@@ -185,9 +185,22 @@ def create_app(config_name):
                         return make_response(jsonify(response)), 400
                 else:
                     # GET request
-                    # initialize search query
+                    # initialize search query, limit and page_no
                     search_query = request.args.get("q")
+                    limit = int(request.args.get('limit', 10))
+                    page_no = int(request.args.get('page', 1))
                     results = []
+                    if not isinstance(limit, int):
+                        response = {
+                            'message': 'Limit must be an integer'
+                        }
+                        return make_response(jsonify(response)), 400
+
+                    if not isinstance(page_no, int):
+                        response = {
+                            'message': 'Page must be an integer'
+                        }
+                        return make_response(jsonify(response)), 400
                     if search_query:
                         # ?q is supplied sth
                         search_results = Shoppinglist.query.filter(Shoppinglist.name.ilike(
@@ -212,6 +225,43 @@ def create_app(config_name):
                                 'message': "Shopping list name does not exist"
                             }
                             return make_response(jsonify(response)), 404
+                    else:
+                        # no search query, return paginated shopping list
+                        all_shopping_lists = []
+                        shoppinglists = Shoppinglist.query.filter_by(
+                            created_by=user_id).paginate(page_no, limit)
+                        if not shoppinglists:
+                            # shoppinglists contains nth
+                            response = jsonify({
+                                "message": "User does not have shopping list(s)"
+                            })
+                            return make_response(response), 404
+                        else:
+                            # shoppinglists contains sth
+                            for item in shoppinglists.items:
+                                obj = {
+                                    'id': item.id,
+                                    'name': item.name
+                                }
+                                all_shopping_lists.append(obj)
+                            next_page = 'None'
+                            prev_page = 'None'
+                            if shoppinglists.has_next:
+                                next_page = '/shoppinglists/?limit={}&page={}'.format(
+                                    str(limit),
+                                    str(page_no + 1)
+                                )
+                            if shoppinglists.has_prev:
+                                prev_page = '/shoppinglists/?limit={}&page={}'.format(
+                                    str(limit),
+                                    str(page_no - 1)
+                                )
+                            response = {
+                                'shopping lists': all_shopping_lists,
+                                'previous page': prev_page,
+                                'next page': next_page
+                            }
+                            return make_response(jsonify(response)), 200
 
                     shoppinglists = Shoppinglist.get_all(user_id)
                     for shoplist in shoppinglists:
