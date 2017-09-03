@@ -385,8 +385,10 @@ def create_app(config_name):
 
                 else:
                     # request.method == 'GET'
-                    # initialize search query
+                    # initialize search query, limit and page_no
                     search_query = request.args.get("q")
+                    limit = int(request.args.get('limit', 10))
+                    page_no = int(request.args.get('page', 1))
                     results = []
                     if search_query:
                         # ?q is supplied sth
@@ -413,6 +415,46 @@ def create_app(config_name):
                                 'message': "Shopping item name does not exist"
                             }
                             return make_response(jsonify(response)), 404
+                    
+                    else:
+                        # no search query, return paginated shopping list
+                        all_shopping_items = []
+                        shoppingitems = Shoppingitem.query.filter_by(
+                            created_by=user_id,in_shoppinglist=slid).paginate(page_no, limit)
+                        if not shoppingitems:
+                            # shoppingitems contains nth
+                            response = jsonify({
+                                "message": "User does not have shopping item(s) in this shopping list"
+                            })
+                            return make_response(response), 404
+                        else:
+                            # shoppingitems contains sth
+                            for item in shoppingitems.items:
+                                obj = {
+                                    'id': item.id,
+                                    'name': item.name
+                                }
+                                all_shopping_items.append(obj)
+                            next_page = 'None'
+                            prev_page = 'None'
+                            if shoppingitems.has_next:
+                                next_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
+                                    int(slid),
+                                    str(limit),
+                                    str(page_no + 1)
+                                )
+                            if shoppingitems.has_prev:
+                                prev_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
+                                    int(slid),
+                                    str(limit),
+                                    str(page_no - 1)
+                                )
+                            response = {
+                                'shopping items': all_shopping_items,
+                                'previous page': prev_page,
+                                'next page': next_page
+                            }
+                            return make_response(jsonify(response)), 200
 
                     # get all shopping items for a shoppinglist and user
                     items = Shoppingitem.query.filter_by(
