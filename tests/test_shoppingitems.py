@@ -5,7 +5,7 @@ from app import create_app, db
 
 
 class ShoppingItemsTestCases(unittest.TestCase):
-    """
+    """Test cases for shopping items
     """
 
     def setUp(self):
@@ -59,6 +59,19 @@ class ShoppingItemsTestCases(unittest.TestCase):
                                  data=self.shoppingitem)
         self.assertEqual(res.status_code, 201)
         self.assertIn("Bread", str(res.data))
+    
+    def test_shoppingitem_search(self):
+        """ Test API can search a shopping item, GET"""
+        res = self.register_login_user_create_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items", headers=dict(Authorization="Bearer " + self.access_token),
+                                 data=self.shoppingitem)
+        # Search item
+        response = self.client().get("/shoppinglists/1/items?q=Br",
+                                     headers=dict(Authorization="Bearer " + self.access_token))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Bread", str(response.data))
 
     def test_api_can_get_shoppingitems(self):
         """ Test API can get a shoppingitems, GET """
