@@ -224,8 +224,8 @@ def create_app(config_name):
                 }
                 return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:id>', methods=['PUT', 'GET', 'DELETE'])
-    def dummy_shoppinglist_edit(id, **kwargs):
+    @app.route('/shoppinglists/<int:slid>', methods=['PUT', 'GET', 'DELETE'])
+    def dummy_shoppinglist_edit(slid, **kwargs):
         """Handles shopping list CREATE, DELETE and EDIT"""
         # Get the access token from the header
         auth_header = request.headers.get('Authorization')
@@ -237,14 +237,17 @@ def create_app(config_name):
             if not isinstance(user_id, str):
                 # the user is authenticated
                 # retrieve a shoppinglist by it's ID
-                shoppinglist = Shoppinglist.query.filter_by(id=id).first()
+                shoppinglist = Shoppinglist.query.filter_by(id=slid).first()
                 if not shoppinglist:
                     # No shopping list ,raise error 404 status code not found
-                    abort(404)
+                    response = {
+                        'message': "No such bucket"
+                        }
+                    return make_response(jsonify(response)), 404
                 if request.method == 'DELETE':
                     shoppinglist.delete()
                     return {
-                        "message": "Shopping list {} deleted successfully".format(shoppinglist.id)
+                        "message": "Shopping list {} deleted successfully".format(shoppinglist.name)
                     }, 200
                 elif request.method == 'PUT':
                     name = str(request.data.get('name', ''))
@@ -254,7 +257,8 @@ def create_app(config_name):
                         'id': shoppinglist.id,
                         'name': shoppinglist.name,
                         'date_created': shoppinglist.date_created,
-                        'date_modified': shoppinglist.date_modified
+                        'date_modified': shoppinglist.date_modified,
+                        'created_by' : shoppinglist.created_by
                     })
                     response.status_code = 200
                     return response
@@ -264,7 +268,8 @@ def create_app(config_name):
                         'id': shoppinglist.id,
                         'name': shoppinglist.name,
                         'date_created': shoppinglist.date_created,
-                        'date_modified': shoppinglist.date_modified
+                        'date_modified': shoppinglist.date_modified,
+                        'created_by' : shoppinglist.created_by
                     })
                     response.status_code = 200
                     return response
