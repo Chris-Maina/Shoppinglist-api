@@ -156,7 +156,8 @@ def create_app(config_name):
                 if request.method == "POST":
                     name = str(request.data.get('name', ''))
                     if name:
-                        shoppinglist = Shoppinglist(name=name, created_by=user_id)
+                        shoppinglist = Shoppinglist(
+                            name=name, created_by=user_id)
                         shoppinglist.save()
                         response = jsonify({
                             'id': shoppinglist.id,
@@ -242,7 +243,7 @@ def create_app(config_name):
                     # No shopping list ,raise error 404 status code not found
                     response = {
                         'message': "No such bucket"
-                        }
+                    }
                     return make_response(jsonify(response)), 404
                 if request.method == 'DELETE':
                     shoppinglist.delete()
@@ -258,7 +259,7 @@ def create_app(config_name):
                         'name': shoppinglist.name,
                         'date_created': shoppinglist.date_created,
                         'date_modified': shoppinglist.date_modified,
-                        'created_by' : shoppinglist.created_by
+                        'created_by': shoppinglist.created_by
                     })
                     response.status_code = 200
                     return response
@@ -269,7 +270,7 @@ def create_app(config_name):
                         'name': shoppinglist.name,
                         'date_created': shoppinglist.date_created,
                         'date_modified': shoppinglist.date_modified,
-                        'created_by' : shoppinglist.created_by
+                        'created_by': shoppinglist.created_by
                     })
                     response.status_code = 200
                     return response
@@ -325,18 +326,46 @@ def create_app(config_name):
 
                 else:
                     # request.method == 'GET'
+                    # initialize search query
+                    search_query = request.args.get("q")
+                    results = []
+                    if search_query:
+                        # ?q is supplied sth
+                        search_results = Shoppingitem.query.filter(Shoppingitem.name.ilike(
+                            '%' + search_query + '%')).filter_by(in_shoppinglist=slid, created_by=user_id).all()
+                        if search_results:
+                            # search_results contain sth
+                            for shoppingitem in search_results:
+
+                                item = {
+                                    'id': shoppingitem.id,
+                                    'name': shoppingitem.name,
+                                    'date_created': shoppingitem.date_created,
+                                    'date_modified': shoppingitem.date_modified,
+                                    'in_shoppinglist': shoppingitem.in_shoppinglist,
+                                    'created_by': user_id
+                                }
+                                results.append(item)
+                            response = jsonify(results)
+                            return make_response(response), 200
+                        else:
+                            # search_results does not contain anything, status code=Not found
+                            response = {
+                                'message': "Shopping item name does not exist"
+                            }
+                            return make_response(jsonify(response)), 404
+
                     # get all shopping items for a shoppinglist and user
                     items = Shoppingitem.query.filter_by(
                         in_shoppinglist=slid, created_by=user_id)
-                    results = []
                     for item in items:
                         obj = {
                             "id": item.id,
                             "name": item.name,
                             "date_created": item.date_created,
                             "date_modified": item.date_modified,
-                            "in_shoppinglist": slid,
-                            "created_by": user_id
+                            "in_shoppinglist": item.in_shoppinglist,
+                            "created_by": item.created_by
                         }
                         # append each item
                         results.append(obj)
