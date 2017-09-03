@@ -154,8 +154,17 @@ def create_app(config_name):
                 #  the user is authenticated
 
                 if request.method == "POST":
-                    name = str(request.data.get('name', ''))
+                    name = str(request.data.get('name'))
                     if name:
+                        # there is a name, check if list exists
+                        if Shoppinglist.query.filter_by(name=name, created_by=user_id).first() is not None:
+                            # list exists, status code= Found
+                            response = jsonify({
+                                'message': "List name already exists. Please use different name"
+                            })
+                            return make_response(response), 302
+
+                        # list name does not exist, save
                         shoppinglist = Shoppinglist(
                             name=name, created_by=user_id)
                         shoppinglist.save()
@@ -169,11 +178,11 @@ def create_app(config_name):
                         response.status_code = 201
                         return response
                     else:
-                        # no name, status code=No content
+                        # no name, status code=bad request
                         response = {
-                            'message': "Please enter a shopping list name"
+                            "message": "Please enter a shopping list name"
                         }
-                        return make_response(jsonify(response)), 204
+                        return make_response(jsonify(response)), 400
                 else:
                     # GET request
                     # initialize search query
