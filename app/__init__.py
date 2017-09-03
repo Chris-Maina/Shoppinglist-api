@@ -156,7 +156,7 @@ def create_app(config_name):
                 if request.method == "POST":
                     name = str(request.data.get('name', ''))
                     if name:
-                        shoppinglist = Shoppinglist(name=name)
+                        shoppinglist = Shoppinglist(name=name, created_by=user_id)
                         shoppinglist.save()
                         response = jsonify({
                             'id': shoppinglist.id,
@@ -167,6 +167,12 @@ def create_app(config_name):
                         })
                         response.status_code = 201
                         return response
+                    else:
+                        # no name, status code=No content
+                        response = {
+                            'message': "Please enter a shopping list name"
+                        }
+                        return make_response(jsonify(response)), 204
                 else:
                     # GET request
                     # initialize search query
@@ -174,18 +180,18 @@ def create_app(config_name):
                     results = []
                     if search_query:
                         # ?q is supplied sth
-                        search_results = Shoppinglist.query.filter(Shoppinglist.name.ilike('%' + search_query + '%')).filter_by(created_by=user_id)
+                        search_results = Shoppinglist.query.filter(Shoppinglist.name.ilike(
+                            '%' + search_query + '%')).filter_by(created_by=user_id).all()
                         if search_results:
-                            print search_results
                             # search_results contain sth
                             for shopping in search_results:
-                                
+
                                 item = {
                                     'id': shopping.id,
                                     'name': shopping.name,
                                     'date_created': shopping.date_created,
                                     'date_modified': shopping.date_modified,
-                                    'created_by': shopping.created_by
+                                    'created_by': user_id
                                 }
                                 results.append(item)
                             response = jsonify(results)
@@ -197,15 +203,14 @@ def create_app(config_name):
                             }
                             return make_response(jsonify(response)), 404
 
-                    shoppinglists = Shoppinglist.get_all()
-
+                    shoppinglists = Shoppinglist.get_all(user_id)
                     for shoplist in shoppinglists:
                         item = {
                             'id': shoplist.id,
                             'name': shoplist.name,
                             'date_created': shoplist.date_created,
                             'date_modified': shoplist.date_modified,
-                            'created_by': user_id
+                            'created_by': shoplist.created_by
                         }
                         results.append(item)
                     response = jsonify(results)
