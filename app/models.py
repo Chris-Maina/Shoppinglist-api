@@ -18,7 +18,8 @@ class User(db.Model):
     password = db.Column(db.String(256), nullable=False)
     shoppinglists = db.relationship(
         'Shoppinglist', order_by='Shoppinglist.id', cascade="all, delete-orphan")
-    shoppingitems = db.relationship('Shoppingitem', order_by='Shoppingitem.id', cascade='all, delete-orphan')
+    shoppingitems = db.relationship(
+        'Shoppingitem', order_by='Shoppingitem.id', cascade='all, delete-orphan')
 
     def __init__(self, email, password):
         """Initialize the user with an email and password."""
@@ -79,11 +80,13 @@ class Shoppinglist(db.Model):
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(
     ), onupdate=db.func.current_timestamp())
     created_by = db.Column(db.Integer, db.ForeignKey(User.id))
-    shoppingitems = db.relationship('Shoppingitem', order_by='Shoppingitem.id', cascade='all, delete-orphan')
+    shoppingitems = db.relationship(
+        'Shoppingitem', order_by='Shoppingitem.id', cascade='all, delete-orphan')
 
-    def __init__(self, name):
-        """" Initialize with name"""
+    def __init__(self, name, created_by):
+        """" Initialize with name and creator"""
         self.name = name
+        self.created_by = created_by
 
     def save(self):
         """Save a shopping list"""
@@ -91,9 +94,9 @@ class Shoppinglist(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_all():
-        """Get all shopping lists"""
-        return Shoppinglist.query.all()
+    def get_all(user_id):
+        """Get all shopping lists belonging to user who created them"""
+        return Shoppinglist.query.filter_by(created_by=user_id)
 
     def delete(self):
         """Delete a shopping list"""
@@ -129,9 +132,9 @@ class Shoppingitem(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_all():
-        """Get all shopping items"""
-        return Shoppingitem.query.all()
+    def get_all_items(slist_id, user_id):
+        """Get all shopping items belonging to a shopping list and creator"""
+        return Shoppingitem.query.filter_by(in_shoppinglist=slist_id, created_by=user_id)
 
     def delete(self):
         """Delete a shopping item"""
