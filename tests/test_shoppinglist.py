@@ -61,7 +61,7 @@ class ShoppinglistTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("to school", str(response.data))
 
-    def test_api_can_get_all_shoppinglists(self):
+    def test_api_can_get_shoppinglists(self):
         """Test API can get a shoppinglist, GET """
         # Register,login user and get access token
         self.register_user()
@@ -77,7 +77,38 @@ class ShoppinglistTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('Back to', str(response.data))
 
-    def test_api_can_get_shoppinglist_by_id(self):
+    def test_list_creation_no_name(self):
+        """ Test API gives an error when no name is supplied """
+        item = {'name': ''}
+        # Register,login user and get access token
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+
+        # create a shoppinglist
+        response = self.client().post('/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+                                      data=item)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("enter a shopping list", str(response.data))
+
+    def test_list_creation_twice(self):
+        """ Test API gives an error when an existing list name is supplied """
+        # Register,login user and get access token
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+
+        # create a shoppinglist
+        response = self.client().post('/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+                                      data=self.shoppinglist)
+        self.assertEqual(response.status_code, 201)
+        # create second shopping list
+        response2 = self.client().post('/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+                                       data=self.shoppinglist)
+        self.assertEqual(response2.status_code, 302)
+        self.assertIn("List name already exists", str(response2.data))
+
+    def test_api_can_get_list_by_id(self):
         """Test API can get a single shoppinglist by using it's id, GET"""
         self.register_user()
         result = self.login_user()
