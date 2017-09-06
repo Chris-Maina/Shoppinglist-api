@@ -128,6 +128,13 @@ class UserTestCases(unittest.TestCase):
         self.assertEqual(res.status_code, 401)
         self.assertEqual(result['message'],
                          "Invalid email or password, Please try again")
+    
+    def tearDown(self):
+        """teardown all initialized variables."""
+        with self.app.app_context():
+            # drop all tables
+            db.session.remove()
+            db.drop_all()
 
 # Make the tests conveniently executable
 if __name__ == "__main__":

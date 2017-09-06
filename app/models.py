@@ -18,6 +18,8 @@ class User(db.Model):
     password = db.Column(db.String(256), nullable=False)
     shoppinglists = db.relationship(
         'Shoppinglist', order_by='Shoppinglist.id', cascade="all, delete-orphan")
+    shoppingitems = db.relationship(
+        'Shoppingitem', order_by='Shoppingitem.id', cascade='all, delete-orphan')
 
     def __init__(self, email, password):
         """Initialize the user with an email and password."""
@@ -67,6 +69,7 @@ class User(db.Model):
         except jwt.InvalidTokenError:
             return "Invalid token. Please register or login"
 
+
 class Shoppinglist(db.Model):
     """Class represents Shoppinglist table"""
     __tablename__ = 'shoppinglists'
@@ -77,10 +80,13 @@ class Shoppinglist(db.Model):
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(
     ), onupdate=db.func.current_timestamp())
     created_by = db.Column(db.Integer, db.ForeignKey(User.id))
+    shoppingitems = db.relationship(
+        'Shoppingitem', order_by='Shoppingitem.id', cascade='all, delete-orphan')
 
-    def __init__(self, name):
-        """" Initialize with name"""
+    def __init__(self, name, created_by):
+        """" Initialize with name and creator"""
         self.name = name
+        self.created_by = created_by
 
     def save(self):
         """Save a shopping list"""
@@ -88,9 +94,9 @@ class Shoppinglist(db.Model):
         db.session.commit()
 
     @staticmethod
-    def get_all():
-        """Get all shopping lists"""
-        return Shoppinglist.query.all()
+    def get_all(user_id):
+        """Get all shopping lists belonging to user who created them"""
+        return Shoppinglist.query.filter_by(created_by=user_id)
 
     def delete(self):
         """Delete a shopping list"""
@@ -99,3 +105,41 @@ class Shoppinglist(db.Model):
 
     def __repr__(self):
         return "<Shoppinglist: {}>".format(self.name)
+
+
+class Shoppingitem(db.Model):
+    """Class represents shoppingitems table"""
+    __tablename__ = "shoppingitems"
+
+    # Define columns for users table
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256))
+    date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
+    date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(
+    ), onupdate=db.func.current_timestamp())
+    created_by = db.Column(db.Integer, db.ForeignKey(User.id))
+    in_shoppinglist = db.Column(db.Integer, db.ForeignKey(Shoppinglist.id))
+
+    def __init__(self, name, in_shoppinglist, created_by):
+        """Initialize a shopping item with a name, shopping list and user"""
+        self.name = name
+        self.in_shoppinglist = in_shoppinglist
+        self.created_by = created_by
+
+    def save(self):
+        """Add and save a shopping item"""
+        db.session.add(self)
+        db.session.commit()
+
+    @staticmethod
+    def get_all_items(slist_id, user_id):
+        """Get all shopping items belonging to a shopping list and creator"""
+        return Shoppingitem.query.filter_by(in_shoppinglist=slist_id, created_by=user_id)
+
+    def delete(self):
+        """Delete a shopping item"""
+        db.session.delete(self)
+        db.session.commit()
+
+    def __repr__(self):
+        return "<Shoppingitem: {}>".format(self.name)
