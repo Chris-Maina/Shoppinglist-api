@@ -39,24 +39,12 @@ def create_app(config_name):
             email = str(request.data.get('email'))
             password = str(request.data.get('password'))
             regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-            if email == "":
-                # check if email is empty, status code bad request 400
-                response = {
-                    'message': 'Please fill email field.'
-                }
-                return make_response(jsonify(response)), 400
-            elif not re.match(regex, email):
+            if not re.match(regex, email):
                 # check to see if email meets the above regular expression
                 response = {
                     'message': 'Please provide a valid email address.'
                 }
                 return make_response(jsonify(response)), 403
-            elif password == "":
-                # check if password is empty, status code bad request 400
-                response = {
-                    'message': 'Please fill password field.'
-                }
-                return make_response(jsonify(response)), 400
             elif len(password) < 6:
                 response = {
                     'message': 'Your password should be atleast 6 characters long.'
@@ -84,18 +72,18 @@ def create_app(config_name):
                         'message': str(e)
                     }
                     return make_response(jsonify(response)), 401
-            else:
-                # There is a user. Return a message user already exists
-                response = {
-                    'message': 'User already exists. Please login.'
-                }
-                return make_response(jsonify(response)), 202
-        else:
-            # request method GET
-            response = jsonify({"message": "To register,"
-                                           "send a POST request with email and password"
-                                           " to /auth/register/"})
-            return make_response(response), 200
+
+            # There is a user. Return a message user already exists
+            response = {
+                'message': 'User already exists. Please login.'
+            }
+            return make_response(jsonify(response)), 202
+
+        # request method GET
+        response = jsonify({"message": "To register,"
+                                       "send a POST request with email and password"
+                                       " to /auth/register/"})
+        return make_response(response), 200
 
     @app.route('/auth/login/', methods=['POST', 'GET'])
     def dummy_login():
@@ -157,7 +145,8 @@ def create_app(config_name):
                     name = str(request.data.get('name'))
                     if name:
                         # there is a name, check if list exists
-                        if Shoppinglist.query.filter_by(name=name, created_by=user_id).first() is not None:
+                        if Shoppinglist.query.filter_by(
+                                name=name, created_by=user_id).first() is not None:
                             # list exists, status code= Found
                             response = jsonify({
                                 'message': "List name already exists. Please use different name"
@@ -177,12 +166,12 @@ def create_app(config_name):
                         })
                         response.status_code = 201
                         return response
-                    else:
-                        # no name, status code=bad request
-                        response = {
-                            "message": "Please enter a shopping list name"
-                        }
-                        return make_response(jsonify(response)), 400
+
+                    # no name, status code=bad request
+                    response = {
+                        "message": "Please enter a shopping list name"
+                    }
+                    return make_response(jsonify(response)), 400
                 else:
                     # GET request
                     # initialize search query, limit and page_no
@@ -219,12 +208,11 @@ def create_app(config_name):
                                 results.append(item)
                             response = jsonify(results)
                             return make_response(response), 200
-                        else:
-                            # search_results does not contain anything, status code=Not found
-                            response = {
-                                'message': "Shopping list name does not exist"
-                            }
-                            return make_response(jsonify(response)), 404
+                        # search_results does not contain anything, status code=Not found
+                        response = {
+                            'message': "Shopping list name does not exist"
+                        }
+                        return make_response(jsonify(response)), 404
                     else:
                         # no search query, return paginated shopping list
                         all_shopping_lists = []
@@ -236,32 +224,32 @@ def create_app(config_name):
                                 "message": "User does not have shopping list(s)"
                             })
                             return make_response(response), 404
-                        else:
-                            # shoppinglists contains sth
-                            for item in shoppinglists.items:
-                                obj = {
-                                    'id': item.id,
-                                    'name': item.name
-                                }
-                                all_shopping_lists.append(obj)
-                            next_page = 'None'
-                            prev_page = 'None'
-                            if shoppinglists.has_next:
-                                next_page = '/shoppinglists/?limit={}&page={}'.format(
-                                    str(limit),
-                                    str(page_no + 1)
-                                )
-                            if shoppinglists.has_prev:
-                                prev_page = '/shoppinglists/?limit={}&page={}'.format(
-                                    str(limit),
-                                    str(page_no - 1)
-                                )
-                            response = {
-                                'shopping lists': all_shopping_lists,
-                                'previous page': prev_page,
-                                'next page': next_page
+
+                        # shoppinglists contains sth
+                        for item in shoppinglists.items:
+                            obj = {
+                                'id': item.id,
+                                'name': item.name
                             }
-                            return make_response(jsonify(response)), 200
+                            all_shopping_lists.append(obj)
+                        next_page = 'None'
+                        prev_page = 'None'
+                        if shoppinglists.has_next:
+                            next_page = '/shoppinglists/?limit={}&page={}'.format(
+                                str(limit),
+                                str(page_no + 1)
+                            )
+                        if shoppinglists.has_prev:
+                            prev_page = '/shoppinglists/?limit={}&page={}'.format(
+                                str(limit),
+                                str(page_no - 1)
+                            )
+                        response = {
+                            'shopping lists': all_shopping_lists,
+                            'previous page': prev_page,
+                            'next page': next_page
+                        }
+                        return make_response(jsonify(response)), 200
 
                     shoppinglists = Shoppinglist.get_all(user_id)
                     for shoplist in shoppinglists:
@@ -276,13 +264,13 @@ def create_app(config_name):
                     response = jsonify(results)
                     response.status_code = 200
                     return response
-            else:
-                # user_id is a string, so the payload is an error message
-                message = user_id
-                response = {
-                    'message': message
-                }
-                return make_response(jsonify(response)), 401
+
+            # user_id is a string, so the payload is an error message
+            message = user_id
+            response = {
+                'message': message
+            }
+            return make_response(jsonify(response)), 401
 
     @app.route('/shoppinglists/<int:slid>', methods=['PUT', 'GET', 'DELETE'])
     def dummy_shoppinglist_edit(slid, **kwargs):
@@ -322,17 +310,16 @@ def create_app(config_name):
                     })
                     response.status_code = 200
                     return response
-                else:
-                    # GET
-                    response = jsonify({
-                        'id': shoppinglist.id,
-                        'name': shoppinglist.name,
-                        'date_created': shoppinglist.date_created,
-                        'date_modified': shoppinglist.date_modified,
-                        'created_by': shoppinglist.created_by
-                    })
-                    response.status_code = 200
-                    return response
+                # GET
+                response = jsonify({
+                    'id': shoppinglist.id,
+                    'name': shoppinglist.name,
+                    'date_created': shoppinglist.date_created,
+                    'date_modified': shoppinglist.date_modified,
+                    'created_by': shoppinglist.created_by
+                })
+                response.status_code = 200
+                return response
             else:
                 # user_id is a string, so the payload is an error message
                 message = user_id
@@ -356,32 +343,33 @@ def create_app(config_name):
                     name = str(request.data.get('name'))
                     if name:
                         # there is a name, check if item exists
-                        if Shoppingitem.query.filter_by(name=name, in_shoppinglist=slid).first() is not None:
+                        if Shoppingitem.query.filter_by(
+                                name=name, in_shoppinglist=slid).first() is not None:
                             # item exists, status code= Found
                             response = jsonify({
                                 'message': "Item name already exists. Please use different name"
                             })
                             return make_response(response), 302
-                        else:
-                            # item does not exist, create and save the item
-                            shoppingitem = Shoppingitem(
-                                name=name, in_shoppinglist=slid, created_by=user_id)
-                            shoppingitem.save()
-                            response = jsonify({
-                                "id": shoppingitem.id,
-                                "name": shoppingitem.name,
-                                "date_created": shoppingitem.date_created,
-                                "date_modified": shoppingitem.date_modified,
-                                "in_shoppinglist": slid,
-                                "created_by": user_id
-                            })
-                            return make_response(response), 201
-                    else:
-                        # name is empty, status code bad request 400
-                        response = {
-                            'message': 'Please provide an item name.'
-                        }
-                        return make_response(jsonify(response)), 400
+
+                        # item does not exist, create and save the item
+                        shoppingitem = Shoppingitem(
+                            name=name, in_shoppinglist=slid, created_by=user_id)
+                        shoppingitem.save()
+                        response = jsonify({
+                            "id": shoppingitem.id,
+                            "name": shoppingitem.name,
+                            "date_created": shoppingitem.date_created,
+                            "date_modified": shoppingitem.date_modified,
+                            "in_shoppinglist": slid,
+                            "created_by": user_id
+                        })
+                        return make_response(response), 201
+
+                    # name is empty, status code bad request 400
+                    response = {
+                        'message': 'Please provide an item name.'
+                    }
+                    return make_response(jsonify(response)), 400
 
                 else:
                     # request.method == 'GET'
@@ -392,8 +380,9 @@ def create_app(config_name):
                     results = []
                     if search_query:
                         # ?q is supplied sth
-                        search_results = Shoppingitem.query.filter(Shoppingitem.name.ilike(
-                            '%' + search_query + '%')).filter_by(in_shoppinglist=slid, created_by=user_id).all()
+                        search_results = Shoppingitem.query.filter(
+                            Shoppingitem.name.ilike('%' + search_query + '%')).filter_by(
+                                in_shoppinglist=slid, created_by=user_id).all()
                         if search_results:
                             # search_results contain sth
                             for shoppingitem in search_results:
@@ -409,22 +398,23 @@ def create_app(config_name):
                                 results.append(item)
                             response = jsonify(results)
                             return make_response(response), 200
-                        else:
-                            # search_results does not contain anything, status code=Not found
-                            response = {
-                                'message': "Shopping item name does not exist"
-                            }
-                            return make_response(jsonify(response)), 404
-                    
+
+                        # search_results does not contain anything, status code=Not found
+                        response = {
+                            'message': "Shopping item name does not exist"
+                        }
+                        return make_response(jsonify(response)), 404
+
                     else:
                         # no search query, return paginated shopping list
                         all_shopping_items = []
                         shoppingitems = Shoppingitem.query.filter_by(
-                            created_by=user_id,in_shoppinglist=slid).paginate(page_no, limit)
+                            created_by=user_id, in_shoppinglist=slid).paginate(page_no, limit)
                         if not shoppingitems:
                             # shoppingitems contains nth
                             response = jsonify({
-                                "message": "User does not have shopping item(s) in this shopping list"
+                                "message":
+                                "User does not have shopping item(s) in this shopping list"
                             })
                             return make_response(response), 404
                         else:
