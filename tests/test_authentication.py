@@ -51,17 +51,17 @@ class UserTestCases(unittest.TestCase):
         """Test no email provided"""
         res = self.client().post('/auth/register/',
                                  data={'email': '', 'password': 'pass123'})
-        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.status_code, 403)
         self.assertIn(
-            "Please fill email", str(res.data))
+            "provide a valid email", str(res.data))
 
     def test_no_password_provided(self):
         """Test no password provided"""
         res = self.client().post('/auth/register/',
                                  data={'email': 'mainachris@gmail.com', 'password': ''})
-        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.status_code, 403)
         self.assertIn(
-            "Please fill password", str(res.data))
+            "password should be atleast 6 characters", str(res.data))
 
     def test_password_length(self):
         """Test password length"""
