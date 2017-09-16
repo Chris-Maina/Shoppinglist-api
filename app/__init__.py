@@ -2,7 +2,7 @@
 import re
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
-from flask import request, jsonify, abort, make_response
+from flask import request, jsonify, make_response
 
 
 # local import
@@ -128,9 +128,9 @@ def create_app(config_name):
                                            "send a POST request to /auth/login/"})
             return make_response(response), 200
 
-    @app.route('/shoppinglists/', methods=['POST', 'GET'])
-    def dummy_shoppinglists():
-        """ Handles POST and GET methods"""
+    @app.route('/shoppinglists/', methods=['GET'])
+    def dummy_shoppinglists_get():
+        """ Handles GET method"""
         # Get the access token from the header
         auth_header = request.headers.get('Authorization')
         access_token = auth_header.split(" ")[1]
@@ -140,39 +140,7 @@ def create_app(config_name):
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
                 #  the user is authenticated
-
-                if request.method == "POST":
-                    name = str(request.data.get('name'))
-                    if name:
-                        # there is a name, check if list exists
-                        if Shoppinglist.query.filter_by(
-                                name=name, created_by=user_id).first() is not None:
-                            # list exists, status code= Found
-                            response = jsonify({
-                                'message': "List name already exists. Please use different name"
-                            })
-                            return make_response(response), 302
-
-                        # list name does not exist, save
-                        shoppinglist = Shoppinglist(
-                            name=name, created_by=user_id)
-                        shoppinglist.save()
-                        response = jsonify({
-                            'id': shoppinglist.id,
-                            'name': shoppinglist.name,
-                            'date_created': shoppinglist.date_created,
-                            'date_modified': shoppinglist.date_modified,
-                            'created_by': user_id
-                        })
-                        response.status_code = 201
-                        return response
-
-                    # no name, status code=bad request
-                    response = {
-                        "message": "Please enter a shopping list name"
-                    }
-                    return make_response(jsonify(response)), 400
-                else:
+                if request.method == "GET":
                     # GET request
                     # initialize search query, limit and page_no
                     search_query = request.args.get("q")
@@ -264,6 +232,59 @@ def create_app(config_name):
                     response = jsonify(results)
                     response.status_code = 200
                     return response
+
+            # user_id is a string, so the payload is an error message
+            message = user_id
+            response = {
+                'message': message
+            }
+            return make_response(jsonify(response)), 401
+
+    @app.route('/shoppinglists/', methods=['POST', 'GET'])
+    def dummy_shoppinglists():
+        """ Handles POST method"""
+        # Get the access token from the header
+        auth_header = request.headers.get('Authorization')
+        access_token = auth_header.split(" ")[1]
+
+        if access_token:
+         # decode the token and get the User ID
+            user_id = User.decode_token(access_token)
+            if not isinstance(user_id, str):
+                #  the user is authenticated
+
+                if request.method == "POST":
+                    name = str(request.data.get('name'))
+                    if name:
+                        # there is a name, check if list exists
+                        if Shoppinglist.query.filter_by(
+                                name=name, created_by=user_id).first() is not None:
+                            # list exists, status code= Found
+                            response = jsonify({
+                                'message': "List name already exists. Please use different name"
+                            })
+                            return make_response(response), 302
+
+                        # list name does not exist, save
+                        shoppinglist = Shoppinglist(
+                            name=name, created_by=user_id)
+                        shoppinglist.save()
+                        response = jsonify({
+                            'id': shoppinglist.id,
+                            'name': shoppinglist.name,
+                            'date_created': shoppinglist.date_created,
+                            'date_modified': shoppinglist.date_modified,
+                            'created_by': user_id
+                        })
+                        response.status_code = 201
+                        return response
+
+                    # no name, status code=bad request
+                    response = {
+                        "message": "Please enter a shopping list name"
+                    }
+                    return make_response(jsonify(response)), 400
+                
 
             # user_id is a string, so the payload is an error message
             message = user_id
