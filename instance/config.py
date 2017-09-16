@@ -1,5 +1,4 @@
 """ /instance/config """
-import os
 
 
 class Config(object):
