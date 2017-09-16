@@ -6,6 +6,18 @@ HOST: https://chris-shoppinglist-api.herokuapp.com/
 An application helps you record all items you wish to buy. It allows you to record and share things you want to spend money on, 
 meeting your needs and keeping track of your shopping lists.
 
+## Home [/]
+### Home [GET]
++ Response 200 (application/json)
+
+        {
+            "message": "Welcome to the Shoppinglist API."
+                        " Register a new user by sending a"
+                        " POST request to /auth/register/. "
+                        "Login by sending a POST request to"
+                        " /auth/login/ to get started."
+        }
+
 ## Register [/auth/register]
 ### Welcome new user [GET]
 + Response 200 (application/json)
