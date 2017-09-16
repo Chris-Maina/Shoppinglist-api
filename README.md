@@ -23,7 +23,7 @@ Initialize, migrate and update the database:
   * python run.py db upgrade
 
 Test the application by running:
-  * nosetests test_file_name
+  * nosetests --with-coverage --cover-package=tests && coverage report
 
 ## Running application
 To start application:
