@@ -1,9 +1,8 @@
 """ models.py """
-
+from datetime import datetime, timedelta
 from app import db
 from flask_bcrypt import Bcrypt
 import jwt
-from datetime import datetime, timedelta
 
 SECRET_KEY = "hardworkpayseverytimebychris"
 
