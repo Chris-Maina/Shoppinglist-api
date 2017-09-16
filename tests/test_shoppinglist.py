@@ -40,7 +40,9 @@ class ShoppinglistTestCase(unittest.TestCase):
         access_token = json.loads(result.data.decode())['access_token']
 
         # create a shoppinglist
-        response = self.client().post('/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+        response = self.client().post('/shoppinglists/',
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
                                       data=self.shoppinglist)
         self.assertEqual(response.status_code, 201)
         self.assertIn('Back to', str(response.data))
@@ -53,13 +55,33 @@ class ShoppinglistTestCase(unittest.TestCase):
         access_token = json.loads(result.data.decode())['access_token']
 
         # create a shoppinglist
-        response = self.client().post('/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+        response = self.client().post('/shoppinglists/',
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
                                       data=self.shoppinglist)
         # Search shopping list
         response = self.client().get("/shoppinglists/?q=Back",
                                      headers=dict(Authorization="Bearer " + access_token))
         self.assertEqual(response.status_code, 200)
         self.assertIn("to school", str(response.data))
+
+    def test_search_shoppinglist_name(self):
+        """ Test API can search a non-existing shopping list, GET"""
+        # Register,login user and get access token
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+
+        # create a shoppinglist
+        response = self.client().post('/shoppinglists/',
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
+                                      data=self.shoppinglist)
+        # Search shopping list
+        response = self.client().get("/shoppinglists/?q=Hike",
+                                     headers=dict(Authorization="Bearer " + access_token))
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("name does not exist", str(response.data))
 
     def test_api_can_get_shoppinglists(self):
         """Test API can get a shoppinglist, GET """
@@ -70,7 +92,9 @@ class ShoppinglistTestCase(unittest.TestCase):
 
         # create a shoppinglist
         response = self.client().post('/shoppinglists/',
-                                      headers=dict(Authorization="Bearer " + access_token), data=self.shoppinglist)
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
+                                      data=self.shoppinglist)
         self.assertEqual(response.status_code, 201)
         response = self.client().get(
             '/shoppinglists/', headers=dict(Authorization="Bearer " + access_token))
@@ -86,7 +110,9 @@ class ShoppinglistTestCase(unittest.TestCase):
         access_token = json.loads(result.data.decode())['access_token']
 
         # create a shoppinglist
-        response = self.client().post('/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+        response = self.client().post('/shoppinglists/',
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
                                       data=item)
         self.assertEqual(response.status_code, 400)
         self.assertIn("enter a shopping list", str(response.data))
@@ -99,11 +125,15 @@ class ShoppinglistTestCase(unittest.TestCase):
         access_token = json.loads(result.data.decode())['access_token']
 
         # create a shoppinglist
-        response = self.client().post('/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+        response = self.client().post('/shoppinglists/',
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
                                       data=self.shoppinglist)
         self.assertEqual(response.status_code, 201)
         # create second shopping list
-        response2 = self.client().post('/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+        response2 = self.client().post('/shoppinglists/',
+                                       headers=dict(
+                                           Authorization="Bearer " + access_token),
                                        data=self.shoppinglist)
         self.assertEqual(response2.status_code, 302)
         self.assertIn("List name already exists", str(response2.data))
@@ -116,12 +146,15 @@ class ShoppinglistTestCase(unittest.TestCase):
 
         # create a bucket
         response = self.client().post('/shoppinglists/',
-                                      headers=dict(Authorization="Bearer " + access_token), data=self.shoppinglist)
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
+                                      data=self.shoppinglist)
         self.assertEqual(response.status_code, 201)
         result_in_json = json.loads(
             response.data.decode('utf-8').replace("'", "\""))
         response = self.client().get(
-            '/shoppinglists/{}'.format(result_in_json['id']), headers=dict(Authorization="Bearer " + access_token))
+            '/shoppinglists/{}'.format(result_in_json['id']),
+            headers=dict(Authorization="Bearer " + access_token))
         self.assertEqual(response.status_code, 200)
         self.assertIn('Back to', str(response.data))
 
@@ -133,10 +166,12 @@ class ShoppinglistTestCase(unittest.TestCase):
 
         # create a bucket
         response = self.client().post(
-            '/shoppinglists/', headers=dict(Authorization="Bearer " + access_token), data={'name': 'Easter shopping'})
+            '/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+            data={'name': 'Easter shopping'})
         self.assertEqual(response.status_code, 201)
         response = self.client().put(
-            '/shoppinglists/1', headers=dict(Authorization="Bearer " + access_token), data={'name': 'Christmass shopping'})
+            '/shoppinglists/1', headers=dict(Authorization="Bearer " + access_token),
+            data={'name': 'Christmass shopping'})
         self.assertEqual(response.status_code, 200)
         res = self.client().get('/shoppinglists/1',
                                 headers=dict(Authorization="Bearer " + access_token))
@@ -150,7 +185,8 @@ class ShoppinglistTestCase(unittest.TestCase):
 
         # create a bucket
         response = self.client().post(
-            '/shoppinglists/', headers=dict(Authorization="Bearer " + access_token), data={'name': 'Easter shopping'})
+            '/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+            data={'name': 'Easter shopping'})
         self.assertEqual(response.status_code, 201)
         response = self.client().delete(
             '/shoppinglists/1', headers=dict(Authorization="Bearer " + access_token))
@@ -166,8 +202,3 @@ class ShoppinglistTestCase(unittest.TestCase):
             # drop all tables
             db.session.remove()
             db.drop_all()
-
-
-# Make the tests conveniently executable
-if __name__ == "__main__":
-    unittest.main()
