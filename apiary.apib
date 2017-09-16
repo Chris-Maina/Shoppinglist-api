@@ -1,0 +1,157 @@
+FORMAT: 1A
+HOST: https://chris-shoppinglist-api.herokuapp.com/
+
+# Shoppinglist-api
+
+An application helps you record all items you wish to buy. It allows you to record and share things you want to spend money on, 
+meeting your needs and keeping track of your shopping lists.
+
+## Register [/auth/register]
+### Welcome new user [GET]
++ Response 200 (application/json)
+
+        {
+            "message": "To register,"
+                       "send a POST request with email and password"
+                       " to /auth/register/"
+        }
+### Register user [POST]
+
+Registers new user by getting the email and password.
+Email should be unique and password should be more than 6 characters long.
+
++ Request (application/json)
+
+        {
+           "email": "chris@gmail.com",
+           "password": "pass123"
+        }
+
++ Response 201 (application/json)
+
+        {
+            "message": "You have been registered successfully. Please login"
+        }
+        
+## Login [/auth/login]
+
+### Welcome logged in user [GET]
++ Response 200 (application/json)
+
+        {
+            "message": "To login,"
+                        "send a POST request to /auth/login/"
+        }
+### Login a user [POST]
+Login an already registered user using his/her email and password.
+
++ Request (application/json)
+
+        {
+            "email": "chris@gmail.com",
+            "password": "pass123"
+        }
+        
++ Response 200 (application/json)
+
+        {
+            'message': "You are logged in successfully",
+            'access_token': "token"
+        }
+        
+## Shoppinglist [/shoppinglists/]
+
+### Get all your shoppling lists [GET]
++ Request
+    + Headers 
+        Authorization : "token"
+            
+
++ Response 200 (application/json)
+
+        {
+            "next page": "None",
+            "previous page": "None",
+            "shopping lists": [
+                {
+                    "id": 16,
+                    "name": "Easter"
+                },
+                {
+                    "id": 18,
+                    "name": "Back to school"
+                },
+                {
+                    "id": 17,
+                    "name": "Soko in marigiti"
+                }
+            ]   
+        }
+### Create a shoppling list [POST]
++ Request (application/json)
+    + Headers 
+        Authorization : "token"
+        
+    + Body
+    
+        {
+            "name": "Christmass shopping"
+        }
+        
++ Response 201 (application/json)
+
+        {
+            "created_by": 2,
+            "date_created": "Sat, 16 Sep 2017 18:00:27 GMT",
+            "date_modified": "Sat, 16 Sep 2017 18:00:27 GMT",
+            "id": 19,
+            "name": "Christmass shopping"
+        }
+
+## Shoppinglist manipulation [/shoppinglists/{shoppinglist_id}]
+### Edit a shoppling list [PUT] 
++ Request (application/json)
+    + Headers
+        Authorization : "token"
+    
+    + Body
+    
+        {
+            "name": "Christmass shopping at Uchumi"
+        }
+        
++ Response 200 (application/json)
+
+        {
+            "created_by": 2,
+            "date_created": "Sat, 16 Sep 2017 18:00:27 GMT",
+            "date_modified": "Sat, 16 Sep 2017 18:45:40 GMT",
+            "id": 19,
+            "name": "Christmass shopping at Uchumi"
+        }
+
+### Delete a shoppling list [DELETE]
++ Request (application/json)
+    + Headers
+        Authorization : "token"
+    
++ Response 200 (application/json)
+    
+        {
+            "message": "Shopping list deleted successfully"
+        }
+
+### Get a shoppling list [GET]
++ Request (application/json)
+    + Headers
+        Authorization : "token"
+        
++ Response 200 (application/json)
+
+        {
+            "created_by": 2,
+            "date_created": "Sat, 16 Sep 2017 18:00:27 GMT",
+            "date_modified": "Sat, 16 Sep 2017 18:45:40 GMT",
+            "id": 19,
+            "name": "Christmass shopping at Uchumi"
+        }
