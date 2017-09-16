@@ -1,9 +1,9 @@
 """app/__init__.py"""
-
+import re
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
-from flask import request, jsonify, abort, make_response
-import re
+from flask import request, jsonify, make_response
+
 
 # local import
 from instance.config import app_config
@@ -38,7 +38,7 @@ def create_app(config_name):
         if request.method == 'POST':
             email = str(request.data.get('email'))
             password = str(request.data.get('password'))
-            regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+            regex = r"(^[a-zA-Z0-9_.]+@[a-zA-Z0-9-]+\.[a-z]+$)"
             if not re.match(regex, email):
                 # check to see if email meets the above regular expression
                 response = {
@@ -128,68 +128,26 @@ def create_app(config_name):
                                            "send a POST request to /auth/login/"})
             return make_response(response), 200
 
-    @app.route('/shoppinglists/', methods=['POST', 'GET'])
-    def dummy_shoppinglists():
-        """ Handles POST and GET methods"""
+    @app.route('/shoppinglists/', methods=['GET'])
+    def dummy_shoppinglists_get():
+        """ Handles GET method"""
         # Get the access token from the header
         auth_header = request.headers.get('Authorization')
         access_token = auth_header.split(" ")[1]
 
         if access_token:
-         # decode the token and get the User ID
+            # decode the token and get the User ID
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
                 #  the user is authenticated
-
-                if request.method == "POST":
-                    name = str(request.data.get('name'))
-                    if name:
-                        # there is a name, check if list exists
-                        if Shoppinglist.query.filter_by(
-                                name=name, created_by=user_id).first() is not None:
-                            # list exists, status code= Found
-                            response = jsonify({
-                                'message': "List name already exists. Please use different name"
-                            })
-                            return make_response(response), 302
-
-                        # list name does not exist, save
-                        shoppinglist = Shoppinglist(
-                            name=name, created_by=user_id)
-                        shoppinglist.save()
-                        response = jsonify({
-                            'id': shoppinglist.id,
-                            'name': shoppinglist.name,
-                            'date_created': shoppinglist.date_created,
-                            'date_modified': shoppinglist.date_modified,
-                            'created_by': user_id
-                        })
-                        response.status_code = 201
-                        return response
-
-                    # no name, status code=bad request
-                    response = {
-                        "message": "Please enter a shopping list name"
-                    }
-                    return make_response(jsonify(response)), 400
-                else:
+                if request.method == "GET":
                     # GET request
                     # initialize search query, limit and page_no
                     search_query = request.args.get("q")
                     limit = int(request.args.get('limit', 10))
                     page_no = int(request.args.get('page', 1))
                     results = []
-                    if not isinstance(limit, int):
-                        response = {
-                            'message': 'Limit must be an integer'
-                        }
-                        return make_response(jsonify(response)), 400
 
-                    if not isinstance(page_no, int):
-                        response = {
-                            'message': 'Page must be an integer'
-                        }
-                        return make_response(jsonify(response)), 400
                     if search_query:
                         # ?q is supplied sth
                         search_results = Shoppinglist.query.filter(Shoppinglist.name.ilike(
@@ -251,19 +209,57 @@ def create_app(config_name):
                         }
                         return make_response(jsonify(response)), 200
 
-                    shoppinglists = Shoppinglist.get_all(user_id)
-                    for shoplist in shoppinglists:
-                        item = {
-                            'id': shoplist.id,
-                            'name': shoplist.name,
-                            'date_created': shoplist.date_created,
-                            'date_modified': shoplist.date_modified,
-                            'created_by': shoplist.created_by
-                        }
-                        results.append(item)
-                    response = jsonify(results)
-                    response.status_code = 200
-                    return response
+            # user_id is a string, so the payload is an error message
+            message = user_id
+            response = {
+                'message': message
+            }
+            return make_response(jsonify(response)), 401
+
+    @app.route('/shoppinglists/', methods=['POST', 'GET'])
+    def dummy_shoppinglists():
+        """ Handles POST method"""
+        # Get the access token from the header
+        auth_header = request.headers.get('Authorization')
+        access_token = auth_header.split(" ")[1]
+
+        if access_token:
+            # decode the token and get the User ID
+            user_id = User.decode_token(access_token)
+            if not isinstance(user_id, str):
+                #  the user is authenticated
+
+                if request.method == "POST":
+                    name = str(request.data.get('name'))
+                    if name:
+                        # there is a name, check if list exists
+                        if Shoppinglist.query.filter_by(
+                                name=name, created_by=user_id).first() is not None:
+                            # list exists, status code= Found
+                            response = jsonify({
+                                'message': "List name already exists. Please use different name"
+                            })
+                            return make_response(response), 302
+
+                        # list name does not exist, save
+                        shoppinglist = Shoppinglist(
+                            name=name, created_by=user_id)
+                        shoppinglist.save()
+                        response = jsonify({
+                            'id': shoppinglist.id,
+                            'name': shoppinglist.name,
+                            'date_created': shoppinglist.date_created,
+                            'date_modified': shoppinglist.date_modified,
+                            'created_by': user_id
+                        })
+                        response.status_code = 201
+                        return response
+
+                    # no name, status code=bad request
+                    response = {
+                        "message": "Please enter a shopping list name"
+                    }
+                    return make_response(jsonify(response)), 400
 
             # user_id is a string, so the payload is an error message
             message = user_id
@@ -273,14 +269,14 @@ def create_app(config_name):
             return make_response(jsonify(response)), 401
 
     @app.route('/shoppinglists/<int:slid>', methods=['PUT', 'GET', 'DELETE'])
-    def dummy_shoppinglist_edit(slid, **kwargs):
+    def dummy_shoppinglist_edit(slid):
         """Handles shopping list CREATE, DELETE and EDIT"""
         # Get the access token from the header
         auth_header = request.headers.get('Authorization')
         access_token = auth_header.split(" ")[1]
 
         if access_token:
-         # decode the token and get the User ID
+            # decode the token and get the User ID
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
                 # the user is authenticated
@@ -328,9 +324,9 @@ def create_app(config_name):
                 }
                 return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:slid>/items', methods=['POST', 'GET'])
-    def dummy_shoppingitems(slid):
-        """ Endpoint handles creation of shopping items"""
+    @app.route('/shoppinglists/<int:slid>/items', methods=['GET'])
+    def dummy_shoppingitems_get(slid):
+        """ Endpoint handles getting of shopping items"""
         auth_header = request.headers.get('Authorization')
         access_token = auth_header.split(" ")[1]
 
@@ -339,39 +335,7 @@ def create_app(config_name):
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
                 #  the user is authenticated
-                if request.method == 'POST':
-                    name = str(request.data.get('name'))
-                    if name:
-                        # there is a name, check if item exists
-                        if Shoppingitem.query.filter_by(
-                                name=name, in_shoppinglist=slid).first() is not None:
-                            # item exists, status code= Found
-                            response = jsonify({
-                                'message': "Item name already exists. Please use different name"
-                            })
-                            return make_response(response), 302
-
-                        # item does not exist, create and save the item
-                        shoppingitem = Shoppingitem(
-                            name=name, in_shoppinglist=slid, created_by=user_id)
-                        shoppingitem.save()
-                        response = jsonify({
-                            "id": shoppingitem.id,
-                            "name": shoppingitem.name,
-                            "date_created": shoppingitem.date_created,
-                            "date_modified": shoppingitem.date_modified,
-                            "in_shoppinglist": slid,
-                            "created_by": user_id
-                        })
-                        return make_response(response), 201
-
-                    # name is empty, status code bad request 400
-                    response = {
-                        'message': 'Please provide an item name.'
-                    }
-                    return make_response(jsonify(response)), 400
-
-                else:
+                if request.method == 'GET':
                     # request.method == 'GET'
                     # initialize search query, limit and page_no
                     search_query = request.args.get("q")
@@ -417,57 +381,91 @@ def create_app(config_name):
                                 "User does not have shopping item(s) in this shopping list"
                             })
                             return make_response(response), 404
-                        else:
-                            # shoppingitems contains sth
-                            for item in shoppingitems.items:
-                                obj = {
-                                    'id': item.id,
-                                    'name': item.name
-                                }
-                                all_shopping_items.append(obj)
-                            next_page = 'None'
-                            prev_page = 'None'
-                            if shoppingitems.has_next:
-                                next_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
-                                    int(slid),
-                                    str(limit),
-                                    str(page_no + 1)
-                                )
-                            if shoppingitems.has_prev:
-                                prev_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
-                                    int(slid),
-                                    str(limit),
-                                    str(page_no - 1)
-                                )
-                            response = {
-                                'shopping items': all_shopping_items,
-                                'previous page': prev_page,
-                                'next page': next_page
-                            }
-                            return make_response(jsonify(response)), 200
 
-                    # get all shopping items for a shoppinglist and user
-                    items = Shoppingitem.query.filter_by(
-                        in_shoppinglist=slid, created_by=user_id)
-                    for item in items:
-                        obj = {
-                            "id": item.id,
-                            "name": item.name,
-                            "date_created": item.date_created,
-                            "date_modified": item.date_modified,
-                            "in_shoppinglist": item.in_shoppinglist,
-                            "created_by": item.created_by
+                        # shoppingitems contains sth
+                        for item in shoppingitems.items:
+                            obj = {
+                                'id': item.id,
+                                'name': item.name
+                            }
+                            all_shopping_items.append(obj)
+                        next_page = 'None'
+                        prev_page = 'None'
+                        if shoppingitems.has_next:
+                            next_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
+                                int(slid),
+                                str(limit),
+                                str(page_no + 1)
+                            )
+                        if shoppingitems.has_prev:
+                            prev_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
+                                int(slid),
+                                str(limit),
+                                str(page_no - 1)
+                            )
+                        response = {
+                            'shopping items': all_shopping_items,
+                            'previous page': prev_page,
+                            'next page': next_page
                         }
-                        # append each item
-                        results.append(obj)
-                    return make_response(jsonify(results)), 200
-            else:
-                # user_id is a string, so the payload is an error message
-                message = user_id
-                response = {
-                    'message': message
-                }
-                return make_response(jsonify(response)), 401
+                        return make_response(jsonify(response)), 200
+
+            # user_id is a string, so the payload is an error message
+            message = user_id
+            response = {
+                'message': message
+            }
+            return make_response(jsonify(response)), 401
+
+    @app.route('/shoppinglists/<int:slid>/items', methods=['POST'])
+    def dummy_shoppingitems(slid):
+        """ Endpoint handles creation of shopping items"""
+        auth_header = request.headers.get('Authorization')
+        access_token = auth_header.split(" ")[1]
+
+        if access_token:
+            # decode the token and get the User ID
+            user_id = User.decode_token(access_token)
+            if not isinstance(user_id, str):
+                #  the user is authenticated
+                if request.method == 'POST':
+                    name = str(request.data.get('name'))
+                    if name:
+                        # there is a name, check if item exists
+                        if Shoppingitem.query.filter_by(
+                                name=name, in_shoppinglist=slid).first() is not None:
+                            # item exists, status code= Found
+                            response = jsonify({
+                                'message': "Item name already exists. Please use different name"
+                            })
+                            return make_response(response), 302
+
+                        # item does not exist, create and save the item
+                        shoppingitem = Shoppingitem(
+                            name=name, in_shoppinglist=slid, created_by=user_id)
+                        shoppingitem.save()
+                        response = jsonify({
+                            "id": shoppingitem.id,
+                            "name": shoppingitem.name,
+                            "date_created": shoppingitem.date_created,
+                            "date_modified": shoppingitem.date_modified,
+                            "in_shoppinglist": slid,
+                            "created_by": user_id
+                        })
+                        return make_response(response), 201
+
+                    # name is empty, status code bad request 400
+                    response = {
+                        'message': 'Please provide an item name.'
+                    }
+                    return make_response(jsonify(response)), 400
+
+            # user_id is a string, so the payload is an error message
+            message = user_id
+            response = {
+                'message': message
+            }
+            return make_response(jsonify(response)), 401
 
     @app.route('/shoppinglists/<int:slid>/items/<int:tid>', methods=['PUT'])
     def dummy_item_edit(tid, slid):

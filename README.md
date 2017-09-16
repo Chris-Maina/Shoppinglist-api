@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Chris-Maina/Shoppinglist-api.svg?branch=bg-limit-page-parameters)](https://travis-ci.org/Chris-Maina/Shoppinglist-api) [![Coverage Status](https://coveralls.io/repos/github/Chris-Maina/Shoppinglist-api/badge.svg?branch=bg-limit-page-parameters)](https://coveralls.io/github/Chris-Maina/Shoppinglist-api?branch=bg-limit-page-parameters) [![Code Health](https://landscape.io/github/Chris-Maina/Shoppinglist-api/bg-limit-page-parameters/landscape.svg?style=flat)](https://landscape.io/github/Chris-Maina/Shoppinglist-api/bg-limit-page-parameters)
+
 # Shoppinglist api
 Flask API for shopping list application
 

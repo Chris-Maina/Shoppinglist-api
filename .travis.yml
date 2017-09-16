@@ -4,8 +4,15 @@ python:
 # command to install dependencies
 install: 
   - pip install -r requirements.txt
+  - pip install coveralls
 # command to run tests
 script: 
   nosetests --with-coverage --cover-package=tests && coverage report
 after_success:
-  coveralls
+  - coveralls
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database test_shop_api;' -U postgres
+addons:
+  postgresql: "9.6"

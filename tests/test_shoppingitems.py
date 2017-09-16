@@ -55,17 +55,21 @@ class ShoppingItemsTestCases(unittest.TestCase):
         res = self.register_login_user_create_shoppinglist()
         self.assertEqual(res.status_code, 201)
         # create an item
-        res = self.client().post("/shoppinglists/1/items", headers=dict(Authorization="Bearer " + self.access_token),
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
                                  data=self.shoppingitem)
         self.assertEqual(res.status_code, 201)
         self.assertIn("Bread", str(res.data))
-    
+
     def test_shoppingitem_search(self):
         """ Test API can search a shopping item, GET"""
         res = self.register_login_user_create_shoppinglist()
         self.assertEqual(res.status_code, 201)
         # create an item
-        res = self.client().post("/shoppinglists/1/items", headers=dict(Authorization="Bearer " + self.access_token),
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
                                  data=self.shoppingitem)
         # Search item
         response = self.client().get("/shoppinglists/1/items?q=Br",
@@ -78,7 +82,9 @@ class ShoppingItemsTestCases(unittest.TestCase):
         res = self.register_login_user_create_shoppinglist()
         self.assertEqual(res.status_code, 201)
         # create an item
-        res = self.client().post("/shoppinglists/1/items", headers=dict(Authorization="Bearer " + self.access_token),
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
                                  data=self.shoppingitem)
         self.assertEqual(res.status_code, 201)
         # get all items
