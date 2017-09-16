@@ -1,9 +1,9 @@
 """app/__init__.py"""
-
+import re
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify, abort, make_response
-import re
+
 
 # local import
 from instance.config import app_config
@@ -273,7 +273,7 @@ def create_app(config_name):
             return make_response(jsonify(response)), 401
 
     @app.route('/shoppinglists/<int:slid>', methods=['PUT', 'GET', 'DELETE'])
-    def dummy_shoppinglist_edit(slid, **kwargs):
+    def dummy_shoppinglist_edit(slid):
         """Handles shopping list CREATE, DELETE and EDIT"""
         # Get the access token from the header
         auth_header = request.headers.get('Authorization')
