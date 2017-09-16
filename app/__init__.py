@@ -38,7 +38,7 @@ def create_app(config_name):
         if request.method == 'POST':
             email = str(request.data.get('email'))
             password = str(request.data.get('password'))
-            regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+            regex = r"(^[a-zA-Z0-9_.]+@[a-zA-Z0-9-]+\.[a-z]+$)"
             if not re.match(regex, email):
                 # check to see if email meets the above regular expression
                 response = {
