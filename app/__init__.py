@@ -136,7 +136,7 @@ def create_app(config_name):
         access_token = auth_header.split(" ")[1]
 
         if access_token:
-         # decode the token and get the User ID
+            # decode the token and get the User ID
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
                 #  the user is authenticated
@@ -224,7 +224,7 @@ def create_app(config_name):
         access_token = auth_header.split(" ")[1]
 
         if access_token:
-         # decode the token and get the User ID
+            # decode the token and get the User ID
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
                 #  the user is authenticated
@@ -276,7 +276,7 @@ def create_app(config_name):
         access_token = auth_header.split(" ")[1]
 
         if access_token:
-         # decode the token and get the User ID
+            # decode the token and get the User ID
             user_id = User.decode_token(access_token)
             if not isinstance(user_id, str):
                 # the user is authenticated
