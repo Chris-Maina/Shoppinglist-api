@@ -2,7 +2,7 @@
 import re
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
-from flask import request, jsonify, make_response
+from flask import request, jsonify, make_response, redirect
 
 
 # local import
@@ -26,11 +26,7 @@ def create_app(config_name):
     @app.route('/')
     def dummy_index():
         """Index page"""
-        return jsonify({"message": "Welcome to the Shoppinglist API."
-                                   " Register a new user by sending a"
-                                   " POST request to /auth/register/. "
-                                   "Login by sending a POST request to"
-                                   " /auth/login/ to get started."})
+        return redirect('http://docs.shoppinglistapi3.apiary.io/')
 
     @app.route('/auth/register/', methods=['POST', 'GET'])
     def dummy_register():
