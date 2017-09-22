@@ -18,9 +18,9 @@ Install dependencies:
   * pip install -r requirements.txt
 
 Initialize, migrate and update the database:
-  * python run.py db init 
-  * python run.py db migrate 
-  * python run.py db upgrade
+  * python manage.py db init 
+  * python manage.py db migrate 
+  * python manage.py db upgrade
 
 Test the application by running:
   * nosetests --with-coverage --cover-package=tests && coverage report
