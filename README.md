@@ -22,12 +22,12 @@ Initialize, migrate and update the database:
   * python manage.py db migrate 
   * python manage.py db upgrade
 
-Test the application by running:
-  * nosetests --with-coverage --cover-package=tests && coverage report
-
 ## Running application
 To start application:
   * python run.py
+  
+Test the application by running:
+  * nosetests --with-coverage --cover-package=tests && coverage report
   
 Access the endpoints using your preferred client e.g. Postman
 
