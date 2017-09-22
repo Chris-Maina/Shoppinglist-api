@@ -91,7 +91,7 @@ class ShoppingItemsTestCases(unittest.TestCase):
                                      headers=dict(Authorization="Bearer " + self.access_token))
         self.assertEqual(response.status_code, 400)
         self.assertIn("must be a positive integer", str(response.data))
-    
+
     def test_shoppingitem_invalid_limit(self):
         """ Test invalid limit value provided, GET"""
         res = self.register_login_user_create_shoppinglist()
