@@ -62,6 +62,21 @@ class ShoppingItemsTestCases(unittest.TestCase):
         self.assertEqual(res.status_code, 201)
         self.assertIn("Bread", str(res.data))
 
+    def test_shoppingitem_invalid_limit(self):
+        """ Test invalid limit value provided, GET"""
+        res = self.register_login_user_create_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=self.shoppingitem)
+        # limit request
+        response = self.client().get("/shoppinglists/1/items?limit=one",
+                                     headers=dict(Authorization="Bearer " + self.access_token))
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Invalid limit value", str(response.data))
+
     def test_shoppingitem_search(self):
         """ Test API can search a shopping item, GET"""
         res = self.register_login_user_create_shoppinglist()
