@@ -137,6 +137,21 @@ class ShoppingItemsTestCases(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Bread", str(response.data))
 
+    def test_shoppingitem_search_non_existing_item(self):
+        """ Test API can search a non existing shopping item, GET"""
+        res = self.register_login_user_create_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=self.shoppingitem)
+        # Search item
+        response = self.client().get("/shoppinglists/1/items?q=Jui",
+                                     headers=dict(Authorization="Bearer " + self.access_token))
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("item name does not exist", str(response.data))
+
     def test_api_can_get_shoppingitems(self):
         """ Test API can get a shoppingitems, GET """
         res = self.register_login_user_create_shoppinglist()
