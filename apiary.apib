@@ -58,7 +58,7 @@ Login an already registered user using his/her email and password.
             'access_token': "token"
         }
         
-## Shoppinglist [/shoppinglists/?{q,limit,page}]
+## Shoppinglist [/shoppinglists/{?q,limit,page}]
 
 ### Get all your shopping lists [GET]
 Get all your shopping lists. You can specify limit, page and q parameters
@@ -165,7 +165,7 @@ Get all your shopping lists. You can specify limit, page and q parameters
         }
 
 
-## Shoppingitems [/shoppinglists/{shoppinglist_id}/items?{q,limit,page}]
+## Shoppingitems [/shoppinglists/{shoppinglist_id}/items{?q,limit,page}]
 Get all your shopping items. You can specify shopping list id,limit, page and q parameters
 + Parameters
     + shoppinglist_id (number) - ID of the shopping list to add or get shopping items
