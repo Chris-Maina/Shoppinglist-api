@@ -206,12 +206,6 @@ def create_app(config_name):
                         all_shopping_lists = []
                         shoppinglists = Shoppinglist.query.filter_by(
                             created_by=user_id).paginate(page_no, limit)
-                        if not shoppinglists:
-                            # shoppinglists contains nth
-                            response = jsonify({
-                                "message": "User does not have shopping list(s)"
-                            })
-                            return make_response(response), 404
 
                         # shoppinglists contains sth
                         for item in shoppinglists.items:
