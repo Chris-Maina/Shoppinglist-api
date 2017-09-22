@@ -13,7 +13,6 @@ after_success:
 services:
   - postgresql
 before_script:
-  - psql -c 'create database shop_api;' -U postgres
   - psql -c 'create database test_shop_api;' -U postgres
 addons:
   postgresql: "9.6"
