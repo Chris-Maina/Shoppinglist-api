@@ -157,7 +157,7 @@ def create_app(config_name):
                                 "message": "Invalid page number"
                             }
                             return make_response(jsonify(response)), 400
-                    else: 
+                    else:
                         # default page number if no page is specified
                         page_no = 1
 
@@ -382,7 +382,7 @@ def create_app(config_name):
                                 "message": "Invalid page number"
                             }
                             return make_response(jsonify(response)), 400
-                    else: 
+                    else:
                         # default page number if no page is specified
                         page_no = 1
 
