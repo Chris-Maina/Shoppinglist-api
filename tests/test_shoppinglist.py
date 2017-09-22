@@ -173,6 +173,23 @@ class ShoppinglistTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('Back to', str(response.data))
 
+    def test_api_can_get_all_shoppinglists(self):
+        """Test API can get all shoppinglist, GET """
+        # Register,login user and get access token
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+
+        # create a shoppinglist
+        response = self.client().post('/shoppinglists/',
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
+                                      data=self.shoppinglist)
+        response = self.client().get(
+            '/shoppinglists/', headers=dict(Authorization="Bearer " + access_token))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Back to', str(response.data))
+
     def test_list_creation_no_name(self):
         """ Test API gives an error when no name is supplied """
         item = {'name': ''}
