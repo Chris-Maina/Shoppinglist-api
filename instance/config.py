@@ -6,8 +6,8 @@ class Config(object):
     """Parent class configurations"""
     DEBUG = False
     CSRF_ENABLED = True
-    SECRET = "hardworkpaysbychris"
-    SQLALCHEMY_DATABASE_URI = "postgresql://postgres:chris@localhost:5432/shop_api"
+    SECRET = os.getenv('SECRET', 'hardworkpaysbychris')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
 
 
 class DevelopmentConfig(Config):
