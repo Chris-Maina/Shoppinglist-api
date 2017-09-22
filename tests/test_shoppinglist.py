@@ -81,8 +81,8 @@ class ShoppinglistTestCase(unittest.TestCase):
         response = self.client().get("/shoppinglists/?limit=-1",
                                      headers=dict(Authorization="Bearer " + access_token))
         self.assertEqual(response.status_code, 400)
-        self.assertIn("must be a positive integer", str(response.data))    
-    
+        self.assertIn("must be a positive integer", str(response.data))
+
     def test_shoppinglist_invalid_page(self):
         """ Test invalid page number provided, GET"""
         # Register,login user and get access token
