@@ -7,6 +7,7 @@ from app import create_app, db
 class UserTestCases(unittest.TestCase):
     """
     Test successful registration
+    Test user registration twice
     Test invalid email provided
     Test no email/password provided
     Test password length
@@ -37,6 +38,14 @@ class UserTestCases(unittest.TestCase):
         self.assertEqual(res.status_code, 201)
         self.assertIn(
             "You have been registered successfully. Please login", str(res.data))
+
+    def test_user_registration_twice(self):
+        """ Test user registration twice"""
+        self.client().post('/auth/register/', data=self.user_details)
+        res = self.client().post('/auth/register/', data=self.user_details)
+        self.assertEqual(res.status_code, 202)
+        self.assertIn(
+            "User already exists", str(res.data))
 
     def test_invalid_email_provided(self):
         """ Test invalid email provided"""
