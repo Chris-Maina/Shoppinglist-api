@@ -107,6 +107,21 @@ class ShoppingItemsTestCases(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Invalid limit value", str(response.data))
 
+    def test_shoppingitem_negative_limit(self):
+        """ Test negative limit value provided, GET"""
+        res = self.register_login_user_create_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=self.shoppingitem)
+        # limit request
+        response = self.client().get("/shoppinglists/1/items?limit=-1",
+                                     headers=dict(Authorization="Bearer " + self.access_token))
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("must be a positive integer", str(response.data))
+
     def test_shoppingitem_search(self):
         """ Test API can search a shopping item, GET"""
         res = self.register_login_user_create_shoppinglist()
