@@ -65,6 +65,24 @@ class ShoppinglistTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("Invalid limit value", str(response.data))
 
+    def test_shoppinglist_invalid_page(self):
+        """ Test invalid limit value provided, GET"""
+        # Register,login user and get access token
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+
+        # create a shoppinglist
+        response = self.client().post('/shoppinglists/',
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
+                                      data=self.shoppinglist)
+        # provide limit and page
+        response = self.client().get("/shoppinglists/?limit=1&page=one",
+                                     headers=dict(Authorization="Bearer " + access_token))
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Invalid page", str(response.data))
+
     def test_shoppinglist_search(self):
         """ Test API can search a shopping list, GET"""
         # Register,login user and get access token
