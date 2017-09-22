@@ -27,7 +27,7 @@ To start application:
   * python run.py
   
 Test the application by running:
-  * nosetests --with-coverage --cover-package=tests && coverage report
+  * nosetests --with-coverage --cover-package=app && coverage report
   
 Access the endpoints using your preferred client e.g. Postman
 
