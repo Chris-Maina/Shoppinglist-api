@@ -365,9 +365,44 @@ def create_app(config_name):
                     # request.method == 'GET'
                     # initialize search query, limit and page_no
                     search_query = request.args.get("q")
-                    limit = int(request.args.get('limit', 10))
-                    page_no = int(request.args.get('page', 1))
+                    limit = request.args.get('limit')
+                    page_no = request.args.get('page')
                     results = []
+
+                    if page_no:
+                        try:
+                            page_no = int(page_no)
+                            if page_no < 1:
+                                response = {
+                                    "message": "Page number must be a positive integer"
+                                }
+                                return make_response(jsonify(response)), 400
+                        except Exception:
+                            response = {
+                                "message": "Invalid page number"
+                            }
+                            return make_response(jsonify(response)), 400
+                    else: 
+                        # default page number if no page is specified
+                        page_no = 1
+
+                    if limit:
+                        try:
+                            limit = int(limit)
+                            if limit < 1:
+                                response = {
+                                    "message": "Limit value must be a positive integer"
+                                }
+                                return make_response(jsonify(response)), 400
+                        except Exception:
+                            response = {
+                                "message": "Invalid limit value"
+                            }
+                            return make_response(jsonify(response)), 400
+                    else:
+                        # default limit value if no limit is specified
+                        limit = 10
+
                     if search_query:
                         # ?q is supplied sth
                         search_results = Shoppingitem.query.filter(
