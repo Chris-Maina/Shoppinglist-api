@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
 
-config_name = "development"
+config_name = os.getenv('APP_SETTINGS')
 app = create_app(config_name)
 
 if __name__ == '__main__':
