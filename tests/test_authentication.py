@@ -1,10 +1,9 @@
 """ /tests/test_authentication.py"""
-import unittest
 import json
-from app import create_app, db
+from tests.basetest import BaseTest
 
 
-class UserTestCases(unittest.TestCase):
+class UserTestCases(BaseTest):
     """
     Test successful registration
     Test user registration twice
@@ -16,22 +15,6 @@ class UserTestCases(unittest.TestCase):
     Test login GET method
     Test user login with non existent email/password
     """
-
-    def setUp(self):
-        """Set up test env, test client and user"""
-        self.app = create_app(config_name="testing")
-        self.client = self.app.test_client
-        # test user
-        self.user_details = {
-            'email': 'mainachris@gmail.com',
-            'password': 'password123'
-        }
-
-        with self.app.app_context():
-            # create tables
-            db.drop_all()
-            db.create_all()
-
     def test_success_registration(self):
         """ Test if registration works"""
         res = self.client().post('/auth/register/', data=self.user_details)
@@ -136,15 +119,3 @@ class UserTestCases(unittest.TestCase):
         self.assertEqual(res.status_code, 401)
         self.assertEqual(result['message'],
                          "Invalid email or password, Please try again")
-
-    def tearDown(self):
-        """teardown all initialized variables."""
-        with self.app.app_context():
-            # drop all tables
-            db.session.remove()
-            db.drop_all()
-
-
-# Make the tests conveniently executable
-if __name__ == "__main__":
-    unittest.main()
