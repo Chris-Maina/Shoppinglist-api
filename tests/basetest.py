@@ -46,7 +46,6 @@ class BaseTest(unittest.TestCase):
         self.register_user()
         result = self.login_user()
         self.access_token = json.loads(result.data.decode())['access_token']
-
         # create a shoppinglist
         return self.client().post('/shoppinglists/',
                                   headers=dict(
