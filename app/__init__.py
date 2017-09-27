@@ -288,8 +288,8 @@ def create_app(config_name):
             }
             return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:slid>', methods=['PUT', 'GET', 'DELETE'])
-    def dummy_shoppinglist_edit(slid):
+    @app.route('/shoppinglists/<int:sl_id>', methods=['PUT', 'GET', 'DELETE'])
+    def dummy_shoppinglist_edit(sl_id):
         """Handles shopping list CREATE, DELETE and EDIT"""
         # Get the access token from the header
         auth_header = request.headers.get('Authorization')
@@ -301,7 +301,7 @@ def create_app(config_name):
             if not isinstance(user_id, str):
                 # the user is authenticated
                 # retrieve a shoppinglist by it's ID
-                shoppinglist = Shoppinglist.query.filter_by(id=slid).first()
+                shoppinglist = Shoppinglist.query.filter_by(id=sl_id).first()
                 if not shoppinglist:
                     # No shopping list ,raise error 404 status code not found
                     response = {
@@ -344,8 +344,8 @@ def create_app(config_name):
                 }
                 return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:slid>/items', methods=['GET'])
-    def dummy_shoppingitems_get(slid):
+    @app.route('/shoppinglists/<int:sl_id>/items', methods=['GET'])
+    def dummy_shoppingitems_get(sl_id):
         """ Endpoint handles getting of shopping items"""
         auth_header = request.headers.get('Authorization')
         access_token = auth_header.split(" ")[1]
@@ -401,7 +401,7 @@ def create_app(config_name):
                         # ?q is supplied sth
                         search_results = Shoppingitem.query.filter(
                             Shoppingitem.name.ilike('%' + search_query + '%')).filter_by(
-                                in_shoppinglist=slid, created_by=user_id).all()
+                                in_shoppinglist=sl_id, created_by=user_id).all()
                         if search_results:
                             # search_results contain sth
                             for shoppingitem in search_results:
@@ -428,7 +428,7 @@ def create_app(config_name):
                         # no search query, return paginated shopping list
                         all_shopping_items = []
                         shoppingitems = Shoppingitem.query.filter_by(
-                            created_by=user_id, in_shoppinglist=slid).paginate(page_no, limit)
+                            created_by=user_id, in_shoppinglist=sl_id).paginate(page_no, limit)
 
                         # shoppingitems contains sth
                         for item in shoppingitems.items:
@@ -441,13 +441,13 @@ def create_app(config_name):
                         prev_page = 'None'
                         if shoppingitems.has_next:
                             next_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
-                                int(slid),
+                                int(sl_id),
                                 str(limit),
                                 str(page_no + 1)
                             )
                         if shoppingitems.has_prev:
                             prev_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
-                                int(slid),
+                                int(sl_id),
                                 str(limit),
                                 str(page_no - 1)
                             )
@@ -465,8 +465,8 @@ def create_app(config_name):
             }
             return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:slid>/items', methods=['POST'])
-    def dummy_shoppingitems(slid):
+    @app.route('/shoppinglists/<int:sl_id>/items', methods=['POST'])
+    def dummy_shoppingitems(sl_id):
         """ Endpoint handles creation of shopping items"""
         auth_header = request.headers.get('Authorization')
         access_token = auth_header.split(" ")[1]
@@ -481,7 +481,7 @@ def create_app(config_name):
                     if name:
                         # there is a name, check if item exists
                         if Shoppingitem.query.filter_by(
-                                name=name, in_shoppinglist=slid).first() is not None:
+                                name=name, in_shoppinglist=sl_id).first() is not None:
                             # item exists, status code= Found
                             response = jsonify({
                                 'message': "Item name already exists. Please use different name"
@@ -490,14 +490,14 @@ def create_app(config_name):
 
                         # item does not exist, create and save the item
                         shoppingitem = Shoppingitem(
-                            name=name, in_shoppinglist=slid, created_by=user_id)
+                            name=name, in_shoppinglist=sl_id, created_by=user_id)
                         shoppingitem.save()
                         response = jsonify({
                             "id": shoppingitem.id,
                             "name": shoppingitem.name,
                             "date_created": shoppingitem.date_created,
                             "date_modified": shoppingitem.date_modified,
-                            "in_shoppinglist": slid,
+                            "in_shoppinglist": sl_id,
                             "created_by": user_id
                         })
                         return make_response(response), 201
@@ -515,8 +515,8 @@ def create_app(config_name):
             }
             return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:slid>/items/<int:tid>', methods=['PUT'])
-    def dummy_item_edit(tid, slid):
+    @app.route('/shoppinglists/<int:sl_id>/items/<int:tid>', methods=['PUT'])
+    def dummy_item_edit(tid, sl_id):
         """Endpoint handles editing a shopping item"""
         auth_header = request.headers.get('Authorization')
         access_token = auth_header.split(" ")[1]
@@ -527,7 +527,7 @@ def create_app(config_name):
             if not isinstance(user_id, str):
                 # retrieve  item using its ID
                 item = Shoppingitem.query.filter_by(
-                    id=tid, in_shoppinglist=slid, created_by=user_id).first()
+                    id=tid, in_shoppinglist=sl_id, created_by=user_id).first()
                 if not item:
                     # if empty raise a 404,Not found error. No item with id=tid
                     response = {
@@ -562,8 +562,8 @@ def create_app(config_name):
                 }
                 return make_response(jsonify(response)), 401
 
-    @app.route('/shoppinglists/<int:slid>/items/<int:tid>', methods=['DELETE', 'GET'])
-    def dummy_item_delete_get(tid, slid):
+    @app.route('/shoppinglists/<int:sl_id>/items/<int:tid>', methods=['DELETE', 'GET'])
+    def dummy_item_delete_get(tid, sl_id):
         """Endpoint handles delete and get a shopping item"""
         auth_header = request.headers.get('Authorization')
         access_token = auth_header.split(" ")[1]
@@ -574,7 +574,7 @@ def create_app(config_name):
             if not isinstance(user_id, str):
                 # retrieve  item using its ID
                 item = Shoppingitem.query.filter_by(
-                    id=tid, in_shoppinglist=slid, created_by=user_id).first()
+                    id=tid, in_shoppinglist=sl_id, created_by=user_id).first()
                 if not item:
                     # if empty raise a 404,Not found error. No item with id=tid
                     response = {
