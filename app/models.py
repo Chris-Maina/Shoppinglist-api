@@ -1,10 +1,11 @@
 """ models.py """
+import jwt
+import os
 from datetime import datetime, timedelta
 from app import db
 from flask_bcrypt import Bcrypt
-import jwt
 
-SECRET_KEY = "hardworkpayseverytimebychris"
+SECRET_KEY = os.getenv('SECRET')
 
 
 class User(db.Model):
