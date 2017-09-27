@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from app import db
 from flask_bcrypt import Bcrypt
 
-SECRET_KEY = os.getenv('SECRET')
+SECRET_KEY = os.getenv('SECRET', 'hardworkpaysbychris')
 
 
 class User(db.Model):
