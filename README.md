@@ -22,6 +22,13 @@ Initialize, migrate and update the database:
   * python manage.py db migrate 
   * python manage.py db upgrade
 
+Create a .env file. Add the following lines of code: PS if you're on windows use set instead of export
+  * export SECRET="random_key"
+  * export APP_SETTINGS="development"
+  * export DATABASE_URL=postgresql://postgres-user:password@localhost/db-name
+
+Run source .env if you are on unix or find the equivalent on windows.
+
 ## Running application
 To start application:
   * python run.py
