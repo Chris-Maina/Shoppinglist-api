@@ -285,12 +285,12 @@ def create_app(config_name):
                     response.status_code = 201
                     return response
 
-                # special characters exists
+                # special characters exists bad request
                 else:
                     response = jsonify({
                         'message': "No special characters in name"
                     })
-                    return make_response(response), 401
+                    return make_response(response), 400
 
             # no name, status code=bad request
             response = {
@@ -299,32 +299,29 @@ def create_app(config_name):
             return make_response(jsonify(response)), 400
 
     @app.route('/shoppinglists/<int:sl_id>', methods=['PUT', 'GET', 'DELETE'])
-    def dummy_shoppinglist_edit(sl_id):
+    @authentication
+    def dummy_shoppinglist_edit(user_id, sl_id):
         """Handles shopping list GETTING, DELETE and EDIT"""
-        # Get the access token from the header
-        auth_header = request.headers.get('Authorization')
-        access_token = auth_header.split(" ")[1]
-
-        if access_token:
-            # decode the token and get the User ID
-            user_id = User.decode_token(access_token)
-            if not isinstance(user_id, str):
-                # the user is authenticated
-                # retrieve a shoppinglist by it's ID
-                shoppinglist = Shoppinglist.query.filter_by(id=sl_id).first()
-                if not shoppinglist:
-                    # No shopping list ,raise error 404 status code not found
-                    response = {
-                        'message': "No such bucket"
-                    }
-                    return make_response(jsonify(response)), 404
-                if request.method == 'DELETE':
-                    shoppinglist.delete()
-                    return {
-                        "message": "Shopping list {} deleted successfully".format(shoppinglist.name)
-                    }, 200
-                elif request.method == 'PUT':
-                    name = str(request.data.get('name', ''))
+        # retrieve a shoppinglist by it's ID
+        shoppinglist = Shoppinglist.query.filter_by(
+            id=sl_id, created_by=user_id).first()
+        if not shoppinglist:
+            # No shopping list ,raise error 404 status code not found
+            response = {
+                'message': "No such shoppinglist"
+            }
+            return make_response(jsonify(response)), 404
+        if request.method == 'DELETE':
+            shoppinglist.delete()
+            return {
+                "message": "Shopping list {} deleted successfully".format(shoppinglist.name)
+            }, 200
+        elif request.method == 'PUT':
+            name = str(request.data.get('name', ''))
+            if name:
+                # there is a name
+                # Check for special characters
+                if re.match("^[a-zA-Z0-9 _]*$", name):
                     shoppinglist.name = name
                     shoppinglist.save()
                     response = jsonify({
@@ -336,241 +333,220 @@ def create_app(config_name):
                     })
                     response.status_code = 200
                     return response
-                # GET
-                response = jsonify({
-                    'id': shoppinglist.id,
-                    'name': shoppinglist.name,
-                    'date_created': shoppinglist.date_created,
-                    'date_modified': shoppinglist.date_modified,
-                    'created_by': shoppinglist.created_by
-                })
-                response.status_code = 200
-                return response
-            else:
-                # user_id is a string, so the payload is an error message
-                message = user_id
-                response = {
-                    'message': message
-                }
-                return make_response(jsonify(response)), 401
+                # special characters exists, bad request
+                else:
+                    response = jsonify({
+                        'message': "No special characters in name"
+                    })
+                    return make_response(response), 400
+            # no name, status code=bad request
+            response = {
+                "message": "Please enter a shopping list name"
+            }
+            return make_response(jsonify(response)), 400
+        # GET
+        response = jsonify({
+            'id': shoppinglist.id,
+            'name': shoppinglist.name,
+            'date_created': shoppinglist.date_created,
+            'date_modified': shoppinglist.date_modified,
+            'created_by': shoppinglist.created_by
+        })
+        response.status_code = 200
+        return response
 
     @app.route('/shoppinglists/<int:sl_id>/items', methods=['GET'])
-    def dummy_shoppingitems_get(sl_id):
+    @authentication
+    def dummy_shoppingitems_get(user_id, sl_id):
         """ Endpoint handles getting of shopping items"""
-        auth_header = request.headers.get('Authorization')
-        access_token = auth_header.split(" ")[1]
+        if request.method == 'GET':
+            # request.method == 'GET'
+            # initialize search query, limit and page_no
+            search_query = request.args.get("q")
+            limit = request.args.get('limit')
+            page_no = request.args.get('page')
+            results = []
 
-        if access_token:
-            # decode the token and get the User ID
-            user_id = User.decode_token(access_token)
-            if not isinstance(user_id, str):
-                #  the user is authenticated
-                if request.method == 'GET':
-                    # request.method == 'GET'
-                    # initialize search query, limit and page_no
-                    search_query = request.args.get("q")
-                    limit = request.args.get('limit')
-                    page_no = request.args.get('page')
-                    results = []
-
-                    if page_no:
-                        try:
-                            page_no = int(page_no)
-                            if page_no < 1:
-                                response = {
-                                    "message": "Page number must be a positive integer"
-                                }
-                                return make_response(jsonify(response)), 400
-                        except Exception:
-                            response = {
-                                "message": "Invalid page number"
-                            }
-                            return make_response(jsonify(response)), 400
-                    else:
-                        # default page number if no page is specified
-                        page_no = 1
-
-                    if limit:
-                        try:
-                            limit = int(limit)
-                            if limit < 1:
-                                response = {
-                                    "message": "Limit value must be a positive integer"
-                                }
-                                return make_response(jsonify(response)), 400
-                        except Exception:
-                            response = {
-                                "message": "Invalid limit value"
-                            }
-                            return make_response(jsonify(response)), 400
-                    else:
-                        # default limit value if no limit is specified
-                        limit = 10
-
-                    if search_query:
-                        # ?q is supplied sth
-                        search_results = Shoppingitem.query.filter(
-                            Shoppingitem.name.ilike('%' + search_query + '%')).filter_by(
-                                in_shoppinglist=sl_id, created_by=user_id).all()
-                        if search_results:
-                            # search_results contain sth
-                            for shoppingitem in search_results:
-
-                                item = {
-                                    'id': shoppingitem.id,
-                                    'name': shoppingitem.name,
-                                    'date_created': shoppingitem.date_created,
-                                    'date_modified': shoppingitem.date_modified,
-                                    'in_shoppinglist': shoppingitem.in_shoppinglist,
-                                    'created_by': user_id
-                                }
-                                results.append(item)
-                            response = jsonify(results)
-                            return make_response(response), 200
-
-                        # search_results does not contain anything, status code=Not found
+            if page_no:
+                try:
+                    page_no = int(page_no)
+                    if page_no < 1:
                         response = {
-                            'message': "Shopping item name does not exist"
-                        }
-                        return make_response(jsonify(response)), 404
-
-                    else:
-                        # no search query, return paginated shopping list
-                        all_shopping_items = []
-                        shoppingitems = Shoppingitem.query.filter_by(
-                            created_by=user_id, in_shoppinglist=sl_id).paginate(page_no, limit)
-
-                        # shoppingitems contains sth
-                        for item in shoppingitems.items:
-                            obj = {
-                                'id': item.id,
-                                'name': item.name
-                            }
-                            all_shopping_items.append(obj)
-                        next_page = 'None'
-                        prev_page = 'None'
-                        if shoppingitems.has_next:
-                            next_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
-                                int(sl_id),
-                                str(limit),
-                                str(page_no + 1)
-                            )
-                        if shoppingitems.has_prev:
-                            prev_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
-                                int(sl_id),
-                                str(limit),
-                                str(page_no - 1)
-                            )
-                        response = {
-                            'shopping items': all_shopping_items,
-                            'previous page': prev_page,
-                            'next page': next_page
-                        }
-                        return make_response(jsonify(response)), 200
-
-            # user_id is a string, so the payload is an error message
-            message = user_id
-            response = {
-                'message': message
-            }
-            return make_response(jsonify(response)), 401
-
-    @app.route('/shoppinglists/<int:sl_id>/items', methods=['POST'])
-    def dummy_shoppingitems(sl_id):
-        """ Endpoint handles creation of shopping items"""
-        auth_header = request.headers.get('Authorization')
-        access_token = auth_header.split(" ")[1]
-
-        if access_token:
-            # decode the token and get the User ID
-            user_id = User.decode_token(access_token)
-            if not isinstance(user_id, str):
-                #  the user is authenticated
-                if request.method == 'POST':
-                    name = str(request.data.get('name'))
-                    if name:
-                        # there is a name, check if item exists
-                        if Shoppingitem.query.filter_by(
-                                name=name, in_shoppinglist=sl_id).first() is not None:
-                            # item exists, status code= Found
-                            response = jsonify({
-                                'message': "Item name already exists. Please use different name"
-                            })
-                            return make_response(response), 302
-
-                        # item does not exist, create and save the item
-                        shoppingitem = Shoppingitem(
-                            name=name, in_shoppinglist=sl_id, created_by=user_id)
-                        shoppingitem.save()
-                        response = jsonify({
-                            "id": shoppingitem.id,
-                            "name": shoppingitem.name,
-                            "date_created": shoppingitem.date_created,
-                            "date_modified": shoppingitem.date_modified,
-                            "in_shoppinglist": sl_id,
-                            "created_by": user_id
-                        })
-                        return make_response(response), 201
-
-                    # name is empty, status code bad request 400
-                    response = {
-                        'message': 'Please provide an item name.'
-                    }
-                    return make_response(jsonify(response)), 400
-
-            # user_id is a string, so the payload is an error message
-            message = user_id
-            response = {
-                'message': message
-            }
-            return make_response(jsonify(response)), 401
-
-    @app.route('/shoppinglists/<int:sl_id>/items/<int:tid>', methods=['PUT'])
-    def dummy_item_edit(tid, sl_id):
-        """Endpoint handles editing a shopping item"""
-        auth_header = request.headers.get('Authorization')
-        access_token = auth_header.split(" ")[1]
-
-        if access_token:
-            # decode the token and get the User ID
-            user_id = User.decode_token(access_token)
-            if not isinstance(user_id, str):
-                # retrieve  item using its ID
-                item = Shoppingitem.query.filter_by(
-                    id=tid, in_shoppinglist=sl_id, created_by=user_id).first()
-                if not item:
-                    # if empty raise a 404,Not found error. No item with id=tid
-                    response = {
-                        'message': "No such item"
-                    }
-                    return make_response(jsonify(response)), 404
-                if request.method == 'PUT':
-                    # obtain new name from request
-                    name = str(request.data.get('name', ''))
-                    if not name:
-                        # no name, status code=bad request
-                        response = {
-                            'message': "Please enter an item name"
+                            "message": "Page number must be a positive integer"
                         }
                         return make_response(jsonify(response)), 400
-                    item.name = name
-                    item.save()
-                    response = jsonify({
-                        "id": item.id,
-                        "name": item.name,
-                        "date_created": item.date_created,
-                        "date_modified": item.date_modified,
-                        "in_shoppinglist": item.in_shoppinglist,
-                        "created_by": item.created_by
-                    })
-                    return make_response(response), 200
+                except Exception:
+                    response = {
+                        "message": "Invalid page number"
+                    }
+                    return make_response(jsonify(response)), 400
             else:
-                # user_id is a string, so the payload is an error message
-                message = user_id
+                # default page number if no page is specified
+                page_no = 1
+
+            if limit:
+                try:
+                    limit = int(limit)
+                    if limit < 1:
+                        response = {
+                            "message": "Limit value must be a positive integer"
+                        }
+                        return make_response(jsonify(response)), 400
+                except Exception:
+                    response = {
+                        "message": "Invalid limit value"
+                    }
+                    return make_response(jsonify(response)), 400
+            else:
+                # default limit value if no limit is specified
+                limit = 10
+
+            if search_query:
+                # ?q is supplied sth
+                search_results = Shoppingitem.query.filter(
+                    Shoppingitem.name.ilike('%' + search_query + '%')).filter_by(
+                        in_shoppinglist=sl_id, created_by=user_id).all()
+                if search_results:
+                    # search_results contain sth
+                    for shoppingitem in search_results:
+
+                        item = {
+                            'id': shoppingitem.id,
+                            'name': shoppingitem.name,
+                            'date_created': shoppingitem.date_created,
+                            'date_modified': shoppingitem.date_modified,
+                            'in_shoppinglist': shoppingitem.in_shoppinglist,
+                            'created_by': user_id
+                        }
+                        results.append(item)
+                    response = jsonify(results)
+                    return make_response(response), 200
+
+                # search_results does not contain anything, status code=Not found
                 response = {
-                    'message': message
+                    'message': "Shopping item name does not exist"
                 }
-                return make_response(jsonify(response)), 401
+                return make_response(jsonify(response)), 404
+
+            else:
+                # no search query, return paginated shopping list
+                all_shopping_items = []
+                shoppingitems = Shoppingitem.query.filter_by(
+                    created_by=user_id, in_shoppinglist=sl_id).paginate(page_no, limit)
+
+                # shoppingitems contains sth
+                for item in shoppingitems.items:
+                    obj = {
+                        'id': item.id,
+                        'name': item.name
+                    }
+                    all_shopping_items.append(obj)
+                next_page = 'None'
+                prev_page = 'None'
+                if shoppingitems.has_next:
+                    next_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
+                        int(sl_id),
+                        str(limit),
+                        str(page_no + 1)
+                    )
+                if shoppingitems.has_prev:
+                    prev_page = '/shoppinglists/{}/items?limit={}&page={}'.format(
+                        int(sl_id),
+                        str(limit),
+                        str(page_no - 1)
+                    )
+                response = {
+                    'shopping items': all_shopping_items,
+                    'previous page': prev_page,
+                    'next page': next_page
+                }
+                return make_response(jsonify(response)), 200
+
+    @app.route('/shoppinglists/<int:sl_id>/items', methods=['POST'])
+    @authentication
+    def dummy_shoppingitems(user_id, sl_id):
+        """ Endpoint handles creation of shopping items"""
+        if request.method == 'POST':
+            name = str(request.data.get('name'))
+            if name:
+                # there is a name,
+                # Check for special characters
+                if re.match("^[a-zA-Z0-9 _]*$", name):
+                    # check if item exists
+                    if Shoppingitem.query.filter_by(
+                            name=name, in_shoppinglist=sl_id).first() is not None:
+                        # item exists, status code= Found
+                        response = jsonify({
+                            'message': "Item name already exists. Please use different name"
+                        })
+                        return make_response(response), 302
+
+                    # item does not exist, create and save the item
+                    shoppingitem = Shoppingitem(
+                        name=name, in_shoppinglist=sl_id, created_by=user_id)
+                    shoppingitem.save()
+                    response = jsonify({
+                        "id": shoppingitem.id,
+                        "name": shoppingitem.name,
+                        "date_created": shoppingitem.date_created,
+                        "date_modified": shoppingitem.date_modified,
+                        "in_shoppinglist": sl_id,
+                        "created_by": user_id
+                    })
+                    return make_response(response), 201
+                # special characters exists, bad request
+                else:
+                    response = jsonify({
+                        'message': "No special characters in name"
+                    })
+                    return make_response(response), 400
+
+            # name is empty, status code bad request 400
+            response = {
+                'message': 'Please provide an item name.'
+            }
+            return make_response(jsonify(response)), 400
+
+    @app.route('/shoppinglists/<int:sl_id>/items/<int:tid>', methods=['PUT'])
+    @authentication
+    def dummy_item_edit(tid, sl_id, user_id):
+        """Endpoint handles editing a shopping item"""
+        # retrieve  item using its ID
+        item = Shoppingitem.query.filter_by(
+            id=tid, in_shoppinglist=sl_id, created_by=user_id).first()
+        if not item:
+            # if empty raise a 404,Not found error. No item with id=tid
+            response = {
+                'message': "No such item"
+            }
+            return make_response(jsonify(response)), 404
+        if request.method == 'PUT':
+            # obtain new name from request
+            name = str(request.data.get('name', ''))
+            if not name:
+                    # no name, status code=bad request
+                response = {
+                    'message': "Please enter an item name"
+                }
+                return make_response(jsonify(response)), 400
+            # Check for special characters
+            elif re.match("^[a-zA-Z0-9 _]*$", name):
+                item.name = name
+                item.save()
+                response = jsonify({
+                    "id": item.id,
+                    "name": item.name,
+                    "date_created": item.date_created,
+                    "date_modified": item.date_modified,
+                    "in_shoppinglist": item.in_shoppinglist,
+                    "created_by": item.created_by
+                })
+                return make_response(response), 200
+            # special characters exists, bad request
+            response = jsonify({
+                'message': "No special characters in name"
+            })
+            return make_response(response), 400
 
     @app.route('/shoppinglists/<int:sl_id>/items/<int:tid>', methods=['DELETE', 'GET'])
     def dummy_item_delete_get(tid, sl_id):
