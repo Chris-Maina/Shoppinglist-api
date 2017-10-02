@@ -549,49 +549,37 @@ def create_app(config_name):
             return make_response(response), 400
 
     @app.route('/shoppinglists/<int:sl_id>/items/<int:tid>', methods=['DELETE', 'GET'])
-    def dummy_item_delete_get(tid, sl_id):
+    @authentication
+    def dummy_item_delete_get(tid, sl_id, user_id):
         """Endpoint handles delete and get a shopping item"""
-        auth_header = request.headers.get('Authorization')
-        access_token = auth_header.split(" ")[1]
+        # retrieve  item using its ID
+        item = Shoppingitem.query.filter_by(
+            id=tid, in_shoppinglist=sl_id, created_by=user_id).first()
+        if not item:
+            # if empty raise a 404,Not found error. No item with id=tid
+            response = {
+                'message': "No such item"
+            }
+            return make_response(jsonify(response)), 404
 
-        if access_token:
-            # decode the token and get the User ID
-            user_id = User.decode_token(access_token)
-            if not isinstance(user_id, str):
-                # retrieve  item using its ID
-                item = Shoppingitem.query.filter_by(
-                    id=tid, in_shoppinglist=sl_id, created_by=user_id).first()
-                if not item:
-                    # if empty raise a 404,Not found error. No item with id=tid
-                    response = {
-                        'message': "No such item"
-                    }
-                    return make_response(jsonify(response)), 404
+        # handle DELETE
+        elif request.method == 'DELETE':
+            item.delete()
+            response = jsonify({
+                'message': "item {} deleted".format(item.name)
+            })
+            return make_response(response), 200
 
-                # handle DELETE
-                elif request.method == 'DELETE':
-                    item.delete()
-                    response = jsonify({
-                        'message': "item {} deleted".format(item.name)
-                    })
-                    return make_response(response), 200
+        # handle GET
+        elif request.method == 'GET':
+            response = jsonify({
+                "id": item.id,
+                "name": item.name,
+                "date_created": item.date_created,
+                "date_modified": item.date_modified,
+                "in_shoppinglist": item.in_shoppinglist,
+                "created_by": item.created_by
+            })
+            return make_response(response), 200
 
-                # handle GET
-                elif request.method == 'GET':
-                    response = jsonify({
-                        "id": item.id,
-                        "name": item.name,
-                        "date_created": item.date_created,
-                        "date_modified": item.date_modified,
-                        "in_shoppinglist": item.in_shoppinglist,
-                        "created_by": item.created_by
-                    })
-                    return make_response(response), 200
-            else:
-                # user_id is a string, so the payload is an error message
-                message = user_id
-                response = {
-                    'message': message
-                }
-                return make_response(jsonify(response)), 401
     return app
