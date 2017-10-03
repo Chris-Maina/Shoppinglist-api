@@ -99,6 +99,22 @@ class ShoppinglistTestCase(BaseTest):
         self.assertEqual(response.status_code, 400)
         self.assertIn("enter a shopping list", str(response.data))
 
+    def test_list_creation_special_characters(self):
+        """ Test API gives an error when name has special characters """
+        item = {'name': 'Graduation party!'}
+        # Register,login user and get access token
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+
+        # create a shoppinglist
+        response = self.client().post('/shoppinglists/',
+                                      headers=dict(
+                                          Authorization="Bearer " + access_token),
+                                      data=item)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("No special characters", str(response.data))
+
     def test_list_creation_twice(self):
         """ Test API gives an error when an existing list name is supplied """
         # create a shoppinglist
@@ -143,6 +159,23 @@ class ShoppinglistTestCase(BaseTest):
         res = self.client().get('/shoppinglists/1',
                                 headers=dict(Authorization="Bearer " + access_token))
         self.assertIn('Christmass', str(res.data))
+
+    def test_shoppinglist_edit_with_special_characters(self):
+        """Test API can gives error when name has special characters, PUT"""
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+
+        # create a shopping list
+        response = self.client().post(
+            '/shoppinglists/', headers=dict(Authorization="Bearer " + access_token),
+            data={'name': 'Easter shopping'})
+        self.assertEqual(response.status_code, 201)
+        response = self.client().put(
+            '/shoppinglists/1', headers=dict(Authorization="Bearer " + access_token),
+            data={'name': 'Christmass shopping+'})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('No special characters', str(response.data))
 
     def test_shoppinglist_deletion(self):
         """ Test API can delete a shopping list, DELETE"""
