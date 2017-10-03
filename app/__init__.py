@@ -509,7 +509,7 @@ def create_app(config_name):
 
     @app.route('/shoppinglists/<int:sl_id>/items/<int:tid>', methods=['PUT'])
     @authentication
-    def dummy_item_edit(tid, sl_id, user_id):
+    def dummy_item_edit(user_id, tid, sl_id):
         """Endpoint handles editing a shopping item"""
         # retrieve  item using its ID
         item = Shoppingitem.query.filter_by(
@@ -550,7 +550,7 @@ def create_app(config_name):
 
     @app.route('/shoppinglists/<int:sl_id>/items/<int:tid>', methods=['DELETE', 'GET'])
     @authentication
-    def dummy_item_delete_get(tid, sl_id, user_id):
+    def dummy_item_delete_get(user_id, tid, sl_id):
         """Endpoint handles delete and get a shopping item"""
         # retrieve  item using its ID
         item = Shoppingitem.query.filter_by(
