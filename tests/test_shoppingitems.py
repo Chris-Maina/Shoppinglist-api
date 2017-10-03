@@ -110,6 +110,20 @@ class ShoppingItemsTestCases(BaseTest):
         self.assertEqual(res.status_code, 400)
         self.assertIn("provide an item name", str(res.data))
 
+    def test_item_creation_with_special_characters(self):
+        """ Test API gives an error when name has special characters """
+        item = {'name': 'Jeep+'}
+        # create a shopping list
+        res = self.test_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=item)
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("No special characters", str(res.data))
+
     def test_api_can_edit_item(self):
         """ Test API can edit an existing item """
         item = {'name': 'sugar'}
@@ -151,6 +165,20 @@ class ShoppingItemsTestCases(BaseTest):
                                  data=item)
         self.assertEqual(res2.status_code, 400)
         self.assertIn("enter an item name", str(res2.data))
+
+    def test_api_edit_with_special_characters(self):
+        """ Test API cannot edit with item name having special characters """
+        item = {'name': 'Bread!'}
+        # create an item
+        res = self.test_shoppingitem()
+        self.assertEqual(res.status_code, 201)
+        # edit item
+        res2 = self.client().put("/shoppinglists/1/items/1",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=item)
+        self.assertEqual(res2.status_code, 400)
+        self.assertIn("No special characters", str(res2.data))
 
     def test_api_can_delete_item(self):
         """ Test API can delete an item """
