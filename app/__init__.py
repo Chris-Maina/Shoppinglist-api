@@ -413,6 +413,8 @@ def create_app(config_name):
                         item = {
                             'id': shoppingitem.id,
                             'name': shoppingitem.name,
+                            'price': shoppingitem.price,
+                            'quantity': shoppingitem.quantity,
                             'date_created': shoppingitem.date_created,
                             'date_modified': shoppingitem.date_modified,
                             'in_shoppinglist': shoppingitem.in_shoppinglist,
@@ -438,7 +440,9 @@ def create_app(config_name):
                 for item in shoppingitems.items:
                     obj = {
                         'id': item.id,
-                        'name': item.name
+                        'name': item.name,
+                        'price': item.price,
+                        'quantity': item.quantity
                     }
                     all_shopping_items.append(obj)
                 next_page = 'None'
@@ -468,6 +472,48 @@ def create_app(config_name):
         """ Endpoint handles creation of shopping items"""
         if request.method == 'POST':
             name = str(request.data.get('name'))
+            price = request.data.get('price')
+            quantity = request.data.get('quantity')
+            # check if price is empty or not
+            if price:
+                try:
+                    price = int(price)
+                    if price < 1:
+                        response = {
+                            "message": "Price value must be a positive integer"
+                        }
+                        return make_response(jsonify(response)), 400
+                except Exception:
+                    response = {
+                        "message": "Invalid price value"
+                    }
+                    return make_response(jsonify(response)), 400
+            else:
+                response = {
+                    "message": "Please provide a price value"
+                }
+                return make_response(jsonify(response)), 400
+
+            # check if quantity is empty or not
+            if quantity:
+                try:
+                    quantity = int(quantity)
+                    if quantity < 1:
+                        response = {
+                            "message": "Quantity value must be a positive integer"
+                        }
+                        return make_response(jsonify(response)), 400
+                except Exception:
+                    response = {
+                        "message": "Invalid quantity value"
+                    }
+                    return make_response(jsonify(response)), 400
+            else:
+                response = {
+                    "message": "Please provide a quantity value"
+                }
+                return make_response(jsonify(response)), 400
+
             if name:
                 # there is a name,
                 # Check for special characters
@@ -483,11 +529,14 @@ def create_app(config_name):
 
                     # item does not exist, create and save the item
                     shoppingitem = Shoppingitem(
-                        name=name, in_shoppinglist=sl_id, created_by=user_id)
+                        name=name, price=price, quantity=quantity, \
+                        in_shoppinglist=sl_id, created_by=user_id)
                     shoppingitem.save()
                     response = jsonify({
                         "id": shoppingitem.id,
                         "name": shoppingitem.name,
+                        "price": shoppingitem.price,
+                        "quantity": shoppingitem.quantity,
                         "date_created": shoppingitem.date_created,
                         "date_modified": shoppingitem.date_modified,
                         "in_shoppinglist": sl_id,
@@ -521,21 +570,24 @@ def create_app(config_name):
             }
             return make_response(jsonify(response)), 404
         if request.method == 'PUT':
-            # obtain new name from request
-            name = str(request.data.get('name', ''))
-            if not name:
-                    # no name, status code=bad request
-                response = {
-                    'message': "Please enter an item name"
-                }
-                return make_response(jsonify(response)), 400
+            # obtain new name/price/quatity from request
+            name = str(request.data.get('name', '')) if str(request.data.get('name', '')) \
+            else item.name
+            price = request.data.get('price', '') if request.data.get('price', '') else item.price
+            quantity = request.data.get('quantity', '') if request.data.get('quantity', '') \
+            else item.quantity
+
             # Check for special characters
-            elif re.match("^[a-zA-Z0-9 _]*$", name):
+            if re.match("^[a-zA-Z0-9 _]*$", name):
                 item.name = name
+                item.price = price
+                item.quantity = quantity
                 item.save()
                 response = jsonify({
                     "id": item.id,
                     "name": item.name,
+                    "price": item.price,
+                    "quantity":item.quantity,
                     "date_created": item.date_created,
                     "date_modified": item.date_modified,
                     "in_shoppinglist": item.in_shoppinglist,
