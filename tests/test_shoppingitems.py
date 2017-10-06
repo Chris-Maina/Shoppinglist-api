@@ -98,7 +98,7 @@ class ShoppingItemsTestCases(BaseTest):
 
     def test_item_creation_no_name(self):
         """ Test API gives an error when no name is supplied """
-        item = {'name': ''}
+        item = {'name': '', 'price': '50', 'quantity': '10'}
         # create a shopping list
         res = self.test_shoppinglist()
         self.assertEqual(res.status_code, 201)
@@ -112,7 +112,7 @@ class ShoppingItemsTestCases(BaseTest):
 
     def test_item_creation_with_special_characters(self):
         """ Test API gives an error when name has special characters """
-        item = {'name': 'Jeep+'}
+        item = {'name': 'Jeep+', 'price': '1000', 'quantity': '10'}
         # create a shopping list
         res = self.test_shoppinglist()
         self.assertEqual(res.status_code, 201)
@@ -151,20 +151,6 @@ class ShoppingItemsTestCases(BaseTest):
                                  data=item)
         self.assertEqual(res2.status_code, 404)
         self.assertIn("No such item", str(res2.data))
-
-    def test_api_edit_no_name(self):
-        """ Test API cannot edit with no item name provided """
-        item = {'name': ''}
-        # create an item
-        res = self.test_shoppingitem()
-        self.assertEqual(res.status_code, 201)
-        # edit item
-        res2 = self.client().put("/shoppinglists/1/items/1",
-                                 headers=dict(
-                                     Authorization="Bearer " + self.access_token),
-                                 data=item)
-        self.assertEqual(res2.status_code, 400)
-        self.assertIn("enter an item name", str(res2.data))
 
     def test_api_edit_with_special_characters(self):
         """ Test API cannot edit with item name having special characters """

@@ -22,7 +22,7 @@ class BaseTest(unittest.TestCase):
         }
 
         # create test shopping item
-        self.shoppingitem = {'name': 'Bread'}
+        self.shoppingitem = {'name': 'Bread', 'price':'50', 'quantity':'1'}
 
         # access token
         self.access_token = None
