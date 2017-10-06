@@ -1,6 +1,7 @@
 """ test_shoppingitems.py """
 from tests.basetest import BaseTest
 
+
 class ShoppingItemsTestCases(BaseTest):
     """Test cases for shopping items
     """
@@ -109,6 +110,34 @@ class ShoppingItemsTestCases(BaseTest):
                                  data=item)
         self.assertEqual(res.status_code, 400)
         self.assertIn("provide an item name", str(res.data))
+
+    def test_item_creation_no_price(self):
+        """ Test API gives an error when no price is supplied """
+        item = {'name': 'Juice', 'price': '', 'quantity': '10'}
+        # create a shopping list
+        res = self.test_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=item)
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("provide a price value", str(res.data))
+
+    def test_item_creation_no_quantity(self):
+        """ Test API gives an error when no quantity is supplied """
+        item = {'name': 'Juice', 'price': '60', 'quantity': ''}
+        # create a shopping list
+        res = self.test_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=item)
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("provide a quantity value", str(res.data))
 
     def test_item_creation_with_special_characters(self):
         """ Test API gives an error when name has special characters """
