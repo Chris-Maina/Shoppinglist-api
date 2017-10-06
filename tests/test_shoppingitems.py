@@ -139,6 +139,62 @@ class ShoppingItemsTestCases(BaseTest):
         self.assertEqual(res.status_code, 400)
         self.assertIn("provide a quantity value", str(res.data))
 
+    def test_item_creation_negative_quantity(self):
+        """ Test API gives an error when negative quantity is supplied """
+        item = {'name': 'Juice', 'price': '60', 'quantity': '-2'}
+        # create a shopping list
+        res = self.test_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=item)
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("must be a positive integer", str(res.data))
+
+    def test_item_creation_negative_price(self):
+        """ Test API gives an error when negative price is supplied """
+        item = {'name': 'Juice', 'price': '-60', 'quantity': '2'}
+        # create a shopping list
+        res = self.test_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=item)
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("must be a positive integer", str(res.data))
+
+    def test_item_creation_invalid_price(self):
+        """ Test API gives an error when invalid price is supplied """
+        item = {'name': 'Juice', 'price': 'one', 'quantity': '2'}
+        # create a shopping list
+        res = self.test_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=item)
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("Invalid price value", str(res.data))
+
+    def test_item_creation_invalid_quantity(self):
+        """ Test API gives an error when invalid quantity is supplied """
+        item = {'name': 'Juice', 'price': '60', 'quantity': 'one'}
+        # create a shopping list
+        res = self.test_shoppinglist()
+        self.assertEqual(res.status_code, 201)
+        # create an item
+        res = self.client().post("/shoppinglists/1/items",
+                                 headers=dict(
+                                     Authorization="Bearer " + self.access_token),
+                                 data=item)
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("Invalid quantity value", str(res.data))
+
     def test_item_creation_with_special_characters(self):
         """ Test API gives an error when name has special characters """
         item = {'name': 'Jeep+', 'price': '1000', 'quantity': '10'}
