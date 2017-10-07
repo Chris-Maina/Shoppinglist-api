@@ -3,6 +3,7 @@ import re
 from functools import wraps
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 from flask import request, jsonify, make_response, redirect
 
 
@@ -153,6 +154,68 @@ def create_app(config_name):
             response = jsonify({"message": "To login,"
                                            "send a POST request to /auth/login/"})
             return make_response(response), 200
+
+    @app.route('/user', methods=['GET'])
+    @authentication
+    def dummy_user_profile(user_id):
+        """ Load the user profile """
+        # Query to see if a user already exists
+        user = User.query.filter_by(id=user_id).first()
+        if user:
+            # Load the profile
+            response = jsonify({
+                'id': user.id,
+                'email': user.email
+            })
+            return make_response(response), 200
+        else:
+            # user does not exist, status code= Not found
+            response = jsonify({
+                "message": "User does not exist."
+            })
+            return make_response(response), 404
+
+    @app.route('/user', methods=['PUT'])
+    @authentication
+    def dummy_update_profile(user_id):
+        """Update user profile"""
+        # Query to see if a user already exists
+        user = User.query.filter_by(id=user_id).first()
+        if user:
+            # Update profile
+            email = str(request.data.get('email', '')) if str(request.data.get('email', '')) \
+                else user.email
+            password = str(request.data.get('password', '')) \
+                if str(request.data.get('password', '')) else user.password
+
+            regex = r"(^[a-zA-Z0-9_.]+@[a-zA-Z0-9-]+\.[a-z]+$)"
+            if not re.match(regex, email):
+                # check to see if email meets the above regular expression
+                response = {
+                    'message': 'Please provide a valid email address.'
+                }
+                return make_response(jsonify(response)), 403
+            elif len(password) < 6:
+                response = {
+                    'message': 'Your password should be atleast 6 characters long.'
+                }
+                return make_response(jsonify(response)), 403
+            # Update the profile
+            user.email = email
+            user.password = Bcrypt().generate_password_hash(password).decode()
+            user.save()
+            response = jsonify({
+                'id': user.id,
+                'email': user.email,
+                'message': "Successfully updated profile"
+            })
+            return make_response(response), 200
+        else:
+            # user does not exist, status code= Not found
+            response = jsonify({
+                "message": "User does not exist."
+            })
+            return make_response(response), 404
 
     @app.route('/shoppinglists/', methods=['GET'])
     @authentication
@@ -529,7 +592,7 @@ def create_app(config_name):
 
                     # item does not exist, create and save the item
                     shoppingitem = Shoppingitem(
-                        name=name, price=price, quantity=quantity, \
+                        name=name, price=price, quantity=quantity,
                         in_shoppinglist=sl_id, created_by=user_id)
                     shoppingitem.save()
                     response = jsonify({
@@ -572,10 +635,11 @@ def create_app(config_name):
         if request.method == 'PUT':
             # obtain new name/price/quatity from request
             name = str(request.data.get('name', '')) if str(request.data.get('name', '')) \
-            else item.name
-            price = request.data.get('price', '') if request.data.get('price', '') else item.price
+                else item.name
+            price = request.data.get('price', '') if request.data.get(
+                'price', '') else item.price
             quantity = request.data.get('quantity', '') if request.data.get('quantity', '') \
-            else item.quantity
+                else item.quantity
 
             # Check for special characters
             if re.match("^[a-zA-Z0-9 _]*$", name):
@@ -587,7 +651,7 @@ def create_app(config_name):
                     "id": item.id,
                     "name": item.name,
                     "price": item.price,
-                    "quantity":item.quantity,
+                    "quantity": item.quantity,
                     "date_created": item.date_created,
                     "date_modified": item.date_modified,
                     "in_shoppinglist": item.in_shoppinglist,
