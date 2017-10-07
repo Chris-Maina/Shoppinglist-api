@@ -1,12 +1,12 @@
 """ /tests/test_authentication.py"""
-import unittest
 import json
-from app import create_app, db
+from tests.basetest import BaseTest
 
 
-class UserTestCases(unittest.TestCase):
+class UserTestCases(BaseTest):
     """
     Test successful registration
+    Test user registration twice
     Test invalid email provided
     Test no email/password provided
     Test password length
@@ -16,27 +16,20 @@ class UserTestCases(unittest.TestCase):
     Test user login with non existent email/password
     """
 
-    def setUp(self):
-        """Set up test env, test client and user"""
-        self.app = create_app(config_name="testing")
-        self.client = self.app.test_client
-        # test user
-        self.user_details = {
-            'email': 'mainachris@gmail.com',
-            'password': 'password123'
-        }
-
-        with self.app.app_context():
-            # create tables
-            db.drop_all()
-            db.create_all()
-
     def test_success_registration(self):
         """ Test if registration works"""
         res = self.client().post('/auth/register/', data=self.user_details)
         self.assertEqual(res.status_code, 201)
         self.assertIn(
             "You have been registered successfully. Please login", str(res.data))
+
+    def test_user_registration_twice(self):
+        """ Test user registration twice"""
+        self.client().post('/auth/register/', data=self.user_details)
+        res = self.client().post('/auth/register/', data=self.user_details)
+        self.assertEqual(res.status_code, 202)
+        self.assertIn(
+            "User already exists", str(res.data))
 
     def test_invalid_email_provided(self):
         """ Test invalid email provided"""
@@ -128,14 +121,65 @@ class UserTestCases(unittest.TestCase):
         self.assertEqual(result['message'],
                          "Invalid email or password, Please try again")
 
-    def tearDown(self):
-        """teardown all initialized variables."""
-        with self.app.app_context():
-            # drop all tables
-            db.session.remove()
-            db.drop_all()
+    def test_get_user_profile(self):
+        """ Test loading of user profile"""
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+        # Get user profile
+        res = self.client().get('/user',
+                                headers=dict(
+                                    Authorization="Bearer " + access_token))
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("test@gmail.com", str(res.data))
 
+    def test_update_user_profile(self):
+        """ Test update user profile"""
+        user_details = {
+            'email': "test@gmail.com",
+            'password': "testpassword"
+        }
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+        # Update user profile
+        res = self.client().put('/user',
+                                headers=dict(
+                                    Authorization="Bearer " + access_token),
+                                data=user_details)
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("Successfully updated profile", str(res.data))
 
-# Make the tests conveniently executable
-if __name__ == "__main__":
-    unittest.main()
+    def test_update_short_password(self):
+        """ Test update user profile short password supplied"""
+        user_details = {
+            'email': "test@gmail.com",
+            'password': "test"
+        }
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+        # Update user profile
+        res = self.client().put('/user',
+                                headers=dict(
+                                    Authorization="Bearer " + access_token),
+                                data=user_details)
+        self.assertEqual(res.status_code, 403)
+        self.assertIn("password should be atleast 6 characters long", str(res.data))
+
+    def test_update_invalid_email(self):
+        """ Test update user profile invalid email"""
+        user_details = {
+            'email': "test@gmail.com.com",
+            'password': "testpassword"
+        }
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+        # Update user profile
+        res = self.client().put('/user',
+                                headers=dict(
+                                    Authorization="Bearer " + access_token),
+                                data=user_details)
+        self.assertEqual(res.status_code, 403)
+        self.assertIn("Please provide a valid email address", str(res.data))

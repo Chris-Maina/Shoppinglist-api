@@ -18,16 +18,23 @@ Install dependencies:
   * pip install -r requirements.txt
 
 Initialize, migrate and update the database:
-  * python run.py db init 
-  * python run.py db migrate 
-  * python run.py db upgrade
+  * python manage.py db init 
+  * python manage.py db migrate 
+  * python manage.py db upgrade
 
-Test the application by running:
-  * nosetests --with-coverage --cover-package=tests && coverage report
+Create a .env file. Add the following lines of code: PS if you're on windows use set instead of export
+  * export SECRET="random_key"
+  * export APP_SETTINGS="development"
+  * export DATABASE_URL=postgresql://postgres-user:password@localhost/db-name
+
+Run source .env if you are on unix or find the equivalent on windows.
 
 ## Running application
 To start application:
   * python run.py
+  
+Test the application by running:
+  * nosetests --with-coverage --cover-package=app && coverage report
   
 Access the endpoints using your preferred client e.g. Postman
 

@@ -1,10 +1,11 @@
 """ models.py """
+import jwt
+import os
 from datetime import datetime, timedelta
 from app import db
 from flask_bcrypt import Bcrypt
-import jwt
 
-SECRET_KEY = "hardworkpayseverytimebychris"
+SECRET_KEY = os.getenv('SECRET')
 
 
 class User(db.Model):
@@ -113,15 +114,19 @@ class Shoppingitem(db.Model):
     # Define columns for users table
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(256))
+    price = db.Column(db.Integer)
+    quantity = db.Column(db.Integer)
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(
     ), onupdate=db.func.current_timestamp())
     created_by = db.Column(db.Integer, db.ForeignKey(User.id))
     in_shoppinglist = db.Column(db.Integer, db.ForeignKey(Shoppinglist.id))
 
-    def __init__(self, name, in_shoppinglist, created_by):
+    def __init__(self, name, price, quantity, in_shoppinglist, created_by):
         """Initialize a shopping item with a name, shopping list and user"""
         self.name = name
+        self.price = price
+        self.quantity = quantity
         self.in_shoppinglist = in_shoppinglist
         self.created_by = created_by
 

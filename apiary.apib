@@ -1,24 +1,12 @@
 FORMAT: 1A
-HOST: https://chris-shoppinglist-api.herokuapp.com/
+HOST: https://shoppinglist-restful-api.herokuapp.com/
 
 # Shoppinglist-api
 
 An application helps you record all items you wish to buy. It allows you to record and share things you want to spend money on, 
 meeting your needs and keeping track of your shopping lists.
 
-## Home [/]
-### Home [GET]
-+ Response 200 (application/json)
-
-        {
-            "message": "Welcome to the Shoppinglist API."
-                        " Register a new user by sending a"
-                        " POST request to /auth/register/. "
-                        "Login by sending a POST request to"
-                        " /auth/login/ to get started."
-        }
-
-## Register [/auth/register]
+## Register [/auth/register/]
 ### Welcome new user [GET]
 + Response 200 (application/json)
 
@@ -30,7 +18,6 @@ meeting your needs and keeping track of your shopping lists.
 ### Register user [POST]
 
 Registers new user by getting the email and password.
-Email should be unique and password should be more than 6 characters long.
 
 + Request (application/json)
 
@@ -45,7 +32,7 @@ Email should be unique and password should be more than 6 characters long.
             "message": "You have been registered successfully. Please login"
         }
         
-## Login [/auth/login]
+## Login [/auth/login/]
 
 ### Welcome logged in user [GET]
 + Response 200 (application/json)
@@ -70,13 +57,59 @@ Login an already registered user using his/her email and password.
             'message': "You are logged in successfully",
             'access_token': "token"
         }
-        
-## Shoppinglist [/shoppinglists/]
 
-### Get all your shoppling lists [GET]
+## User Profile [/user]
+Load the profile of the logged in user. Update email or password for a logged in user
+
+### Get user profile [GET]
++ Request (application/json)
+
+    + Headers
+    
+            Authorization : Bearer access_token
+        
++ Response 200 (application/json)
+
+        {
+            "id": 1,
+            "email": "chris@gmail.com"
+        }
+        
+### Update user profile [PUT]
++ Request (application/json)
+
+    + Headers
+    
+            Authorization : Bearer access_token
+    
+    + Body
+    
+            {
+                "email": "chris@yahoo.com"
+            }
+        
++ Response 200 (application/json)
+
+        {
+            "id": 1,
+            "email": "chris@yahoo.com",
+            "message": "Successfully updated profile"
+        }
+
+## Shoppinglist [/shoppinglists/{?q,limit,page}]
+
+### Get all your shopping lists [GET]
+Get all your shopping lists. You can specify limit, page and q parameters
++ Parameters
+    + limit (optional) - limit of the results, default is 10
+    + page (optional) - page to be displayed, default is 1
+    + q (optional) - a search term/query passed by user
+
 + Request
-    + Headers 
-        Authorization : "token"
+
+    + Headers
+    
+            Authorization : Bearer access_token
             
 
 + Response 200 (application/json)
@@ -99,16 +132,18 @@ Login an already registered user using his/her email and password.
                 }
             ]   
         }
-### Create a shoppling list [POST]
+### Create a shopping list [POST]
 + Request (application/json)
-    + Headers 
-        Authorization : "token"
+
+    + Headers
+    
+            Authorization : Bearer access_token
         
     + Body
     
-        {
-            "name": "Christmass shopping"
-        }
+            {
+                "name": "Christmass shopping"
+            }
         
 + Response 201 (application/json)
 
@@ -121,16 +156,21 @@ Login an already registered user using his/her email and password.
         }
 
 ## Shoppinglist manipulation [/shoppinglists/{shoppinglist_id}]
-### Edit a shoppling list [PUT] 
++ Parameters
+    + shoppinglist_id (number) - ID of the shopping list to edit, delete, get
+
+### Edit a shopping list [PUT] 
 + Request (application/json)
+
     + Headers
-        Authorization : "token"
+    
+            Authorization : Bearer access_token
     
     + Body
     
-        {
-            "name": "Christmass shopping at Uchumi"
-        }
+            {
+                "name": "Christmass shopping at Uchumi"
+            }
         
 + Response 200 (application/json)
 
@@ -142,10 +182,29 @@ Login an already registered user using his/her email and password.
             "name": "Christmass shopping at Uchumi"
         }
 
-### Delete a shoppling list [DELETE]
+### Get a shopping list [GET]
 + Request (application/json)
+
     + Headers
-        Authorization : "token"
+    
+            Authorization : Bearer access_token
+        
++ Response 200 (application/json)
+
+        {
+            "created_by": 2,
+            "date_created": "Sat, 16 Sep 2017 18:00:27 GMT",
+            "date_modified": "Sat, 16 Sep 2017 18:45:40 GMT",
+            "id": 19,
+            "name": "Christmass shopping at Uchumi"
+        }
+
+### Delete a shopping list [DELETE]
++ Request (application/json)
+
+    + Headers
+    
+            Authorization : Bearer access_token
     
 + Response 200 (application/json)
     
@@ -153,17 +212,132 @@ Login an already registered user using his/her email and password.
             "message": "Shopping list deleted successfully"
         }
 
-### Get a shoppling list [GET]
-+ Request (application/json)
+
+## Shoppingitems [/shoppinglists/{shoppinglist_id}/items{?q,limit,page}]
+Get all your shopping items. You can specify shopping list id,limit, page and q parameters
++ Parameters
+    + shoppinglist_id (number) - ID of the shopping list to add or get shopping items
+    + limit (optional) - limit of the results, default is 10
+    + page (optional) - page to be displayed, default is 1
+    + q (optional) - a search term/query passed by user
+
+### Get shopping items in a shoppinglist [GET]
++ Request
+
     + Headers
-        Authorization : "token"
+    
+            Authorization : Bearer access_token
+            
+
++ Response 200 (application/json)
+
+        {
+            "next page": "None",
+            "previous page": "None",
+            "shopping items": [
+                {
+                    "id": 8,
+                    "name": "Pencil",
+                    "price": 10,
+                    "quantity": 2
+                },
+                {
+                    "id": 9,
+                    "name": "Rubber",
+                    "price": 10,
+                    "quantity": 2
+                }
+            ]   
+        }
+### Create a shopping item [POST]
++ Request (application/json)
+
+    + Headers
+    
+            Authorization : Bearer access_token
+        
+    + Body
+    
+            {
+                "name": "Pencil",
+                "price": 10,
+                "quantity": 2
+            }
+        
++ Response 201 (application/json)
+
+        {
+            "created_by": 3,
+            "date_created": "Sat, 16 Sep 2017 18:00:27 GMT",
+            "date_modified": "Sat, 16 Sep 2017 18:00:27 GMT",
+            "id": 8,
+            "in_shoppinglist": 19,
+            "name": "Pencil",
+            "price": 10,
+            "quantity": 2
+        }
+
+## Shoppingitems manipulation [/shoppinglists/{shoppinglist_id}/items/{item_id}]
++ Parameters
+    + shoppinglist_id (number) - ID of the shopping list to add or get shopping item
+    + item_id (number) - ID of the shopping item to edit, get, delete
+
+### Edit a shopping item [PUT] 
++ Request (application/json)
+
+    + Headers
+    
+            Authorization : Bearer access_token
+    
+    + Body
+    
+            {
+                "name": "Pen"
+            }
         
 + Response 200 (application/json)
 
         {
-            "created_by": 2,
+            "created_by": 3,
             "date_created": "Sat, 16 Sep 2017 18:00:27 GMT",
             "date_modified": "Sat, 16 Sep 2017 18:45:40 GMT",
-            "id": 19,
-            "name": "Christmass shopping at Uchumi"
+            "id": 8,
+            "in_shoppinglist": 19,
+            "name": "Pen",
+            "price": 10,
+            "quantity": 2
         }
+
+### Get a shopping item [GET]
++ Request (application/json)
+
+    + Headers
+    
+            Authorization : Bearer access_token
+        
++ Response 200 (application/json)
+
+        {
+            "created_by": 3,
+            "date_created": "Sat, 16 Sep 2017 18:00:27 GMT",
+            "date_modified": "Sat, 16 Sep 2017 18:45:40 GMT",
+            "id": 8,
+            "in_shoppinglist": 19,
+            "name": "Pen",
+            "price": 10,
+            "quantity": 2
+        }
+
+### Delete a shopping item [DELETE]
++ Request (application/json)
+
+    + Headers
+    
+            Authorization : Bearer access_token
+    
++ Response 200 (application/json)
+    
+        {
+            "message": "item Pen deleted"
+        }
+
