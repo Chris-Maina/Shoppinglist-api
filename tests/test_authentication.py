@@ -15,6 +15,7 @@ class UserTestCases(BaseTest):
     Test login GET method
     Test user login with non existent email/password
     """
+
     def test_success_registration(self):
         """ Test if registration works"""
         res = self.client().post('/auth/register/', data=self.user_details)
@@ -119,3 +120,66 @@ class UserTestCases(BaseTest):
         self.assertEqual(res.status_code, 401)
         self.assertEqual(result['message'],
                          "Invalid email or password, Please try again")
+
+    def test_get_user_profile(self):
+        """ Test loading of user profile"""
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+        # Get user profile
+        res = self.client().get('/user',
+                                headers=dict(
+                                    Authorization="Bearer " + access_token))
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("test@gmail.com", str(res.data))
+
+    def test_update_user_profile(self):
+        """ Test update user profile"""
+        user_details = {
+            'email': "test@gmail.com",
+            'password': "testpassword"
+        }
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+        # Update user profile
+        res = self.client().put('/user',
+                                headers=dict(
+                                    Authorization="Bearer " + access_token),
+                                data=user_details)
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("Successfully updated profile", str(res.data))
+
+    def test_update_short_password(self):
+        """ Test update user profile short password supplied"""
+        user_details = {
+            'email': "test@gmail.com",
+            'password': "test"
+        }
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+        # Update user profile
+        res = self.client().put('/user',
+                                headers=dict(
+                                    Authorization="Bearer " + access_token),
+                                data=user_details)
+        self.assertEqual(res.status_code, 403)
+        self.assertIn("password should be atleast 6 characters long", str(res.data))
+
+    def test_update_invalid_email(self):
+        """ Test update user profile invalid email"""
+        user_details = {
+            'email': "test@gmail.com.com",
+            'password': "testpassword"
+        }
+        self.register_user()
+        result = self.login_user()
+        access_token = json.loads(result.data.decode())['access_token']
+        # Update user profile
+        res = self.client().put('/user',
+                                headers=dict(
+                                    Authorization="Bearer " + access_token),
+                                data=user_details)
+        self.assertEqual(res.status_code, 403)
+        self.assertIn("Please provide a valid email address", str(res.data))
