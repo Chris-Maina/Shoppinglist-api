@@ -691,6 +691,8 @@ def create_app(config_name):
             response = jsonify({
                 "id": item.id,
                 "name": item.name,
+                "price": item.price,
+                "quantity": item.quantity,
                 "date_created": item.date_created,
                 "date_modified": item.date_modified,
                 "in_shoppinglist": item.in_shoppinglist,
