@@ -1,5 +1,8 @@
 """app/__init__.py"""
 import re
+import os
+import jwt
+from datetime import datetime, timedelta
 from functools import wraps
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
@@ -53,6 +56,33 @@ def create_app(config_name):
             return make_response(jsonify(response)), 401
 
         return check
+
+    @app.errorhandler(404)
+    def handle_404(error):
+        """Handles 404 errors"""
+        response = {
+            "status": 404,
+            "message": "The requested {} is not found ".format(request.url)
+        }
+        return make_response(jsonify(response)), 404
+
+    @app.errorhandler(405)
+    def handle_405(error):
+        """Handles 405 errors"""
+        response = {
+            "status": 405,
+            "message": "Method not allowed on {} ".format(request.url)
+        }
+        return make_response(jsonify(response)), 405
+
+    @app.errorhandler(500)
+    def handle_500(error):
+        """Handles 500 errors"""
+        response = {
+            "status": 500,
+            "message": "There is an error at this endpoint ".format(request.url)
+        }
+        return make_response(jsonify(response)), 500
 
     @app.route('/')
     def dummy_index():
@@ -116,15 +146,15 @@ def create_app(config_name):
     def dummy_login():
         """ Handle user login"""
         if request.method == 'POST':
-            email = str(request.data.get('email'))
-            password = str(request.data.get('password'))
-            if email == "":
+            email = str(request.data.get('email')) if request.data.get('email') else None
+            password = str(request.data.get('password')) if request.data.get('password') else None
+            if not email:
                 # check if email is empty, status code bad request 400
                 response = {
                     'message': 'Please fill email field.'
                 }
                 return make_response(jsonify(response)), 400
-            elif password == "":
+            elif not password:
                 # check if password is empty, status code bad request 400
                 response = {
                     'message': 'Please fill password field.'
@@ -174,6 +204,68 @@ def create_app(config_name):
                 "message": "User does not exist."
             })
             return make_response(response), 404
+
+    @app.route('/user/reset', methods=['POST'])
+    def dummy_get_reset_token():
+        """Allows a user to get reset token"""
+        if request.method == "POST":
+            email = str(request.data.get('email')) if request.data.get('email') else None
+            if email: 
+                # email has sth
+                # Query to see if a user already exists
+                user = User.query.filter_by(email=email).first()
+                if user: 
+                    # create token with email
+                    # set up a payload with an expiration time
+                    payload = {
+                        'exp': datetime.utcnow() + timedelta(minutes=60),
+                        'iat': datetime.utcnow(),
+                        'sub': email
+                    }   
+
+                    email_token = jwt.encode(
+                    payload,
+                    os.getenv('SECRET')
+                    )
+                    response ={
+                        "reset_token": email_token.decode()
+                    }
+                    return make_response(jsonify(response)), 200
+                else:
+                    response = {
+                    'message': 'User does not exist.'
+                    }
+                    return make_response(jsonify(response)), 400
+            
+            response = {
+                'message': 'Please fill email field.'
+            }
+            return make_response(jsonify(response)), 400
+
+    @app.route('/user/reset/password/<email_token>', methods=['PUT'])
+    def dummy_reset_password(email_token):
+        """"Allows a user to reset password"""
+        # Decode token with our secret key
+        payload = jwt.decode(email_token, os.getenv('SECRET'))
+        email = payload['sub']
+        # Query to see if a user already exists
+        user = User.query.filter_by(email=email).first() 
+        if request.method == "PUT":
+            password = str(request.data.get('password', '')) if request.data.get('password', '') else user.password
+            if len(password) < 6:
+                response = {
+                    'message': 'Your password should be atleast 6 characters long.'
+                }
+                return make_response(jsonify(response)), 403
+            
+            # Update the profile
+            user.email = email
+            user.password = Bcrypt().generate_password_hash(password).decode()
+            user.save()
+            response = jsonify({
+                'message': "You have successfully changed your password"
+            })
+            return make_response(response), 200
 
     @app.route('/user', methods=['PUT'])
     @authentication
@@ -320,7 +412,7 @@ def create_app(config_name):
         """ Handles POST method"""
 
         if request.method == "POST":
-            name = str(request.data.get('name'))
+            name = str(request.data.get('name')) if request.data.get('name') else None
             if name:
                 # there is a name,
                 # Check for special characters
@@ -429,6 +521,15 @@ def create_app(config_name):
             limit = request.args.get('limit')
             page_no = request.args.get('page')
             results = []
+            # retrieve a shoppinglist by it's ID
+            shoppinglist = Shoppinglist.query.filter_by(
+                id=sl_id, created_by=user_id).first()
+            if not shoppinglist:
+                # No shopping list ,raise error 404 status code not found
+                response = {
+                    'message': "No such shoppinglist"
+                }
+                return make_response(jsonify(response)), 404
 
             if page_no:
                 try:
@@ -537,6 +638,17 @@ def create_app(config_name):
             name = str(request.data.get('name'))
             price = request.data.get('price')
             quantity = request.data.get('quantity')
+
+            # retrieve a shoppinglist by it's ID
+            shoppinglist = Shoppinglist.query.filter_by(
+                id=sl_id, created_by=user_id).first()
+            if not shoppinglist:
+                # No shopping list ,raise error 404 status code not found
+                response = {
+                    'message': "No such shoppinglist"
+                }
+                return make_response(jsonify(response)), 404            
+
             # check if price is empty or not
             if price:
                 try:
