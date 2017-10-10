@@ -58,6 +58,41 @@ Login an already registered user using his/her email and password.
             'access_token': "token"
         }
 
+## Reset Token [/user/reset]
+### Get Reset Access Token [POST]
+Provides a request access token for a registered user to allow him/her to reset password.
+
++ Request (application/json)
+
+        {
+            "email": "chris@gmail.com"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "reset_token": "token"
+        }
+
+## Reset password [/user/reset/password/{email_token}]
+### Change password [PUT]
+Allows the user to provide new password.
++ Parameters
+    + email_token - Reset token
+    
++ Request (application/json)
+    
+        {
+            "password": "password1"
+        }
+        
++ Response 200 (application/json)
+
+        {
+            "message": "You have successfully changed your password"
+        }
+
+
 ## User Profile [/user]
 Load the profile of the logged in user. Update email or password for a logged in user
 
