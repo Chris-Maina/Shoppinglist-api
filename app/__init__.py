@@ -1,9 +1,9 @@
 """app/__init__.py"""
 import re
 import os
-import jwt
 from datetime import datetime, timedelta
 from functools import wraps
+import jwt
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -198,45 +198,42 @@ def create_app(config_name):
                 'email': user.email
             })
             return make_response(response), 200
-        else:
-            # user does not exist, status code= Not found
-            response = jsonify({
-                "message": "User does not exist."
-            })
-            return make_response(response), 404
+        # user does not exist, status code= Not found
+        response = jsonify({
+            "message": "User does not exist."
+        })
+        return make_response(response), 404
 
     @app.route('/user/reset', methods=['POST'])
     def dummy_get_reset_token():
         """Allows a user to get reset token"""
         if request.method == "POST":
             email = str(request.data.get('email')) if request.data.get('email') else None
-            if email: 
+            if email:
                 # email has sth
                 # Query to see if a user already exists
                 user = User.query.filter_by(email=email).first()
-                if user: 
+                if user:
                     # create token with email
                     # set up a payload with an expiration time
                     payload = {
                         'exp': datetime.utcnow() + timedelta(minutes=60),
                         'iat': datetime.utcnow(),
                         'sub': email
-                    }   
+                    }
 
                     email_token = jwt.encode(
-                    payload,
-                    os.getenv('SECRET')
+                        payload,
+                        os.getenv('SECRET')
                     )
-                    response ={
+                    response = {
                         "reset_token": email_token.decode()
                     }
                     return make_response(jsonify(response)), 200
-                else:
-                    response = {
+                response = {
                     'message': 'User does not exist.'
-                    }
-                    return make_response(jsonify(response)), 400
-            
+                }
+                return make_response(jsonify(response)), 400
             response = {
                 'message': 'Please fill email field.'
             }
@@ -249,15 +246,15 @@ def create_app(config_name):
         payload = jwt.decode(email_token, os.getenv('SECRET'))
         email = payload['sub']
         # Query to see if a user already exists
-        user = User.query.filter_by(email=email).first() 
+        user = User.query.filter_by(email=email).first()
         if request.method == "PUT":
-            password = str(request.data.get('password', '')) if request.data.get('password', '') else user.password
+            password = str(request.data.get('password', '')) \
+            if request.data.get('password', '') else user.password
             if len(password) < 6:
                 response = {
                     'message': 'Your password should be atleast 6 characters long.'
                 }
                 return make_response(jsonify(response)), 403
-            
             # Update the profile
             user.email = email
             user.password = Bcrypt().generate_password_hash(password).decode()
@@ -488,12 +485,11 @@ def create_app(config_name):
                     })
                     response.status_code = 200
                     return response
-                # special characters exists, bad request
-                else:
-                    response = jsonify({
-                        'message': "No special characters in name"
-                    })
-                    return make_response(response), 400
+                # special characters exists, bad request   
+                response = jsonify({
+                    'message': "No special characters in name"
+                })
+                return make_response(response), 400
             # no name, status code=bad request
             response = {
                 "message": "Please enter a shopping list name"
@@ -647,7 +643,7 @@ def create_app(config_name):
                 response = {
                     'message': "No such shoppinglist"
                 }
-                return make_response(jsonify(response)), 404            
+                return make_response(jsonify(response)), 404
 
             # check if price is empty or not
             if price:
