@@ -1,7 +1,7 @@
 """ models.py """
-import jwt
 import os
 from datetime import datetime, timedelta
+import jwt
 from app import db
 from flask_bcrypt import Bcrypt
 
