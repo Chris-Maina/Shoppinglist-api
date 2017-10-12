@@ -659,7 +659,7 @@ def create_app(config_name):
             # check if price is empty or not
             if price:
                 try:
-                    price = int(price)
+                    price = float(price)
                     if price < 1:
                         response = {
                             "message": "Price value must be a positive integer"
@@ -679,7 +679,7 @@ def create_app(config_name):
             # check if quantity is empty or not
             if quantity:
                 try:
-                    quantity = int(quantity)
+                    quantity = float(quantity)
                     if quantity < 1:
                         response = {
                             "message": "Quantity value must be a positive integer"
