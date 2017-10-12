@@ -224,7 +224,8 @@ def create_app(config_name):
 
                     email_token = jwt.encode(
                         payload,
-                        os.getenv('SECRET')
+                        os.getenv('SECRET'),
+                        algorithm='HS256'
                     )
                     response = {
                         "reset_token": email_token.decode()
@@ -242,27 +243,33 @@ def create_app(config_name):
     @app.route('/user/reset/password/<email_token>', methods=['PUT'])
     def dummy_reset_password(email_token):
         """"Allows a user to reset password"""
-        # Decode token with our secret key
-        payload = jwt.decode(email_token, os.getenv('SECRET'))
-        email = payload['sub']
-        # Query to see if a user already exists
-        user = User.query.filter_by(email=email).first()
-        if request.method == "PUT":
-            password = str(request.data.get('password', '')) \
-            if request.data.get('password', '') else user.password
-            if len(password) < 6:
-                response = {
-                    'message': 'Your password should be atleast 6 characters long.'
-                }
-                return make_response(jsonify(response)), 403
-            # Update the profile
-            user.email = email
-            user.password = Bcrypt().generate_password_hash(password).decode()
-            user.save()
-            response = jsonify({
-                'message': "You have successfully changed your password"
-            })
-            return make_response(response), 200
+        try:
+            # Decode token with our secret key
+            payload = jwt.decode(email_token, os.getenv('SECRET'))
+            email = payload['sub']
+            # Query to see if a user already exists
+            user = User.query.filter_by(email=email).first()
+            if request.method == "PUT":
+                password = str(request.data.get('password', '')) \
+                if request.data.get('password', '') else user.password
+                if len(password) < 6:
+                    response = {
+                        'message': 'Your password should be atleast 6 characters long.'
+                    }
+                    return make_response(jsonify(response)), 403
+                # Update the profile
+                user.email = email
+                user.password = Bcrypt().generate_password_hash(password).decode()
+                user.save()
+                response = jsonify({
+                    'message': "You have successfully changed your password"
+                })
+                return make_response(response), 200
+        except Exception as e:
+            response = {
+                "message": str(e)+" in your token. Use the token provided."
+            }
+            return make_response(jsonify(response))
 
     @app.route('/user', methods=['PUT'])
     @authentication
