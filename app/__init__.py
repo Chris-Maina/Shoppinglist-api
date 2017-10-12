@@ -80,7 +80,7 @@ def create_app(config_name):
         """Handles 500 errors"""
         response = {
             "status": 500,
-            "message": "There is an error at this endpoint ".format(request.url)
+            "message": "There is an error at this endpoint {}".format(request.url)
         }
         return make_response(jsonify(response)), 500
 
@@ -146,8 +146,10 @@ def create_app(config_name):
     def dummy_login():
         """ Handle user login"""
         if request.method == 'POST':
-            email = str(request.data.get('email')) if request.data.get('email') else None
-            password = str(request.data.get('password')) if request.data.get('password') else None
+            email = str(request.data.get('email')
+                       ) if request.data.get('email') else None
+            password = str(request.data.get('password')
+                          ) if request.data.get('password') else None
             if not email:
                 # check if email is empty, status code bad request 400
                 response = {
@@ -208,7 +210,8 @@ def create_app(config_name):
     def dummy_get_reset_token():
         """Allows a user to get reset token"""
         if request.method == "POST":
-            email = str(request.data.get('email')) if request.data.get('email') else None
+            email = str(request.data.get('email')
+                       ) if request.data.get('email') else None
             if email:
                 # email has sth
                 # Query to see if a user already exists
@@ -251,7 +254,7 @@ def create_app(config_name):
             user = User.query.filter_by(email=email).first()
             if request.method == "PUT":
                 password = str(request.data.get('password', '')) \
-                if request.data.get('password', '') else user.password
+                    if request.data.get('password', '') else user.password
                 if len(password) < 6:
                     response = {
                         'message': 'Your password should be atleast 6 characters long.'
@@ -267,7 +270,7 @@ def create_app(config_name):
                 return make_response(response), 200
         except Exception as e:
             response = {
-                "message": str(e)+" in your token. Use the token provided."
+                "message": str(e) + " in your token. Use the token provided."
             }
             return make_response(jsonify(response))
 
@@ -416,7 +419,8 @@ def create_app(config_name):
         """ Handles POST method"""
 
         if request.method == "POST":
-            name = str(request.data.get('name')) if request.data.get('name') else None
+            name = str(request.data.get('name')
+                      ) if request.data.get('name') else None
             if name:
                 # there is a name,
                 # Check for special characters
@@ -492,7 +496,7 @@ def create_app(config_name):
                     })
                     response.status_code = 200
                     return response
-                # special characters exists, bad request   
+                # special characters exists, bad request
                 response = jsonify({
                     'message': "No special characters in name"
                 })
