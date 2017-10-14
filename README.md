@@ -4,6 +4,11 @@
 # Shoppinglist api
 Flask API for shopping list application
 
+# Documentation
+You can find the documentation using the link :
+
+    https://shoppinglist-restful-api.herokuapp.com/
+
 ## Installation and setup
 Clone this repo
   * https://github.com/Chris-Maina/Shoppinglist-api.git
