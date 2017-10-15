@@ -407,9 +407,9 @@ def create_app(config_name):
                     prev_page = '/shoppinglists/' + '?limit=' + str(limit) +\
                         '&page=' + str(page_no - 1)
                 response = {
-                    'shopping lists': all_shopping_lists,
-                    'previous page': prev_page,
-                    'next page': next_page
+                    'shopping_lists': all_shopping_lists,
+                    'previous_page': prev_page,
+                    'next_page': next_page
                 }
                 return make_response(jsonify(response)), 200
 
@@ -631,9 +631,9 @@ def create_app(config_name):
                         str(page_no - 1)
                     )
                 response = {
-                    'shopping items': all_shopping_items,
-                    'previous page': prev_page,
-                    'next page': next_page
+                    'shopping_items': all_shopping_items,
+                    'previous_page': prev_page,
+                    'next_page': next_page
                 }
                 return make_response(jsonify(response)), 200
 
