@@ -2,3 +2,4 @@
 *.pyc
 shoppinglist-api/
 .vscode/
+.coverage
