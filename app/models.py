@@ -14,8 +14,8 @@ class User(db.Model):
 
     # Define columns for users table
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(256), nullable=False, unique=True)
-    password = db.Column(db.String(256), nullable=False)
+    email = db.Column(db.String(60), nullable=False, unique=True)
+    password = db.Column(db.String(70), nullable=False)
     shoppinglists = db.relationship(
         'Shoppinglist', order_by='Shoppinglist.id', cascade="all, delete-orphan")
     shoppingitems = db.relationship(
@@ -75,7 +75,7 @@ class Shoppinglist(db.Model):
     __tablename__ = 'shoppinglists'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255))
+    name = db.Column(db.String(30))
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(
     ), onupdate=db.func.current_timestamp())
@@ -113,9 +113,9 @@ class Shoppingitem(db.Model):
 
     # Define columns for users table
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(256))
-    price = db.Column(db.Integer)
-    quantity = db.Column(db.Integer)
+    name = db.Column(db.String(30))
+    price = db.Column(db.Float)
+    quantity = db.Column(db.Float)
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(
     ), onupdate=db.func.current_timestamp())
