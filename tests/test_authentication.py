@@ -64,7 +64,7 @@ class UserTestCases(BaseTest):
 
     def test_user_login(self):
         """Test user can login after registration"""
-        res = self.client().post('/auth/register/', data=self.user_details)
+        self.client().post('/auth/register/', data=self.user_details)
         login_res = self.client().post('/auth/login/', data=self.user_details)
         # Get the response in json format
         result = json.loads(login_res.data.decode())
@@ -72,8 +72,7 @@ class UserTestCases(BaseTest):
 
     def test_login_no_email(self):
         """Test no email provided when login"""
-        res = self.client().post('/auth/register/', data=self.user_details)
-        self.assertEqual(res.status_code, 201)
+        self.client().post('/auth/register/', data=self.user_details)
         login_res = self.client().post('/auth/login/', data={
             'email': '',
             'password': 'password123'
@@ -82,8 +81,8 @@ class UserTestCases(BaseTest):
 
     def test_login_no_password(self):
         """Test no email provided when login"""
-        res = self.client().post('/auth/register/', data=self.user_details)
-        self.assertEqual(res.status_code, 201)
+        self.client().post('/auth/register/', data=self.user_details)
+
         login_res = self.client().post('/auth/login/', data={
             'email': 'mainachris@gmail.com',
             'password': ''
@@ -147,7 +146,8 @@ class UserTestCases(BaseTest):
                                 headers=dict(
                                     Authorization="Bearer " + access_token),
                                 data=user_details)
-        self.assertIn("password should be atleast 6 characters long", str(res.data))
+        self.assertIn(
+            "password should be atleast 6 characters long", str(res.data))
 
     def test_update_invalid_email(self):
         """ Test update user profile invalid email"""
@@ -169,54 +169,56 @@ class UserTestCases(BaseTest):
         """ Test successful get reset token"""
         user_email = {
             'email': "test@gmail.com"
-            }
+        }
         self.register_user()
-        res=self.client().post('/user/reset', data=user_email)
+        res = self.client().post('/user/reset', data=user_email)
         self.assertEqual(res.status_code, 200)
 
     def test_get_reset_token_unregistered_user(self):
         """ Test unsuccessful get reset token"""
         user_email = {
             'email': "chris@gmail.com"
-            }
+        }
         self.register_user()
-        res=self.client().post('/user/reset', data=user_email)
+        res = self.client().post('/user/reset', data=user_email)
         self.assertEqual(res.status_code, 400)
 
     def test_get_reset_token_no_email_provided(self):
         """ Test get reset token no email provided"""
         self.register_user()
-        res=self.client().post('/user/reset')
+        res = self.client().post('/user/reset')
         self.assertIn("Please fill email field", str(res.data))
 
     def test_reset_password(self):
         """ Test reset password"""
         user_email = {
             'email': "test@gmail.com"
-            }
+        }
         user_password = {
             'password': "testpassword"
-            }
+        }
         self.register_user()
-        res=self.client().post('/user/reset', data=user_email)
+        res = self.client().post('/user/reset', data=user_email)
         # Get reset access token
         result = json.loads(res.data.decode())
-        response=self.client().put('/user/reset/password/{}'.format(result['reset_token']), data=user_password)
+        response = self.client().put(
+            '/user/reset/password/{}'.format(result['reset_token']), data=user_password)
         self.assertEqual(response.status_code, 200)
 
     def test_reset_with_short_password(self):
         """ Test reset password"""
         user_email = {
             'email': "test@gmail.com"
-            }
+        }
         user_password = {
             'password': "test"
-            }
+        }
         self.register_user()
-        res=self.client().post('/user/reset', data=user_email)
+        res = self.client().post('/user/reset', data=user_email)
         # Get reset access token
         result = json.loads(res.data.decode())
         # test
-        response=self.client().put('/user/reset/password/{}'.format(result['reset_token']), data=user_password)
-        self.assertIn("password should be atleast 6 characters", str(response.data))
-        
+        response = self.client().put(
+            '/user/reset/password/{}'.format(result['reset_token']), data=user_password)
+        self.assertIn("password should be atleast 6 characters",
+                      str(response.data))

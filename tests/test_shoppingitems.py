@@ -69,8 +69,7 @@ class ShoppingItemsTestCases(BaseTest):
     def test_api_can_get_shoppingitems(self):
         """ Test API can get a shoppingitems, GET """
         # create an item
-        res = self.test_shoppingitem()
-        self.assertEqual(res.status_code, 201)
+        self.test_shoppingitem()
         # get all items
         response = self.client().get("/shoppinglists/1/items",
                                      headers=dict(Authorization="Bearer " + self.access_token))
@@ -79,7 +78,7 @@ class ShoppingItemsTestCases(BaseTest):
     def test_item_creation_twice(self):
         """ Test API gives an error on item creation twice """
         # create an item
-        res = self.test_shoppingitem()
+        self.test_shoppingitem()
         # create the same item twice
         res2 = self.client().post("/shoppinglists/1/items",
                                   headers=dict(
@@ -91,7 +90,7 @@ class ShoppingItemsTestCases(BaseTest):
         """ Test API gives an error when no name is supplied """
         item = {'name': '', 'price': '50', 'quantity': '10'}
         # create a shopping list
-        res = self.test_shoppinglist()
+        self.test_shoppinglist()
         # create an item
         res = self.client().post("/shoppinglists/1/items",
                                  headers=dict(
@@ -103,7 +102,7 @@ class ShoppingItemsTestCases(BaseTest):
         """ Test API gives an error when no price is supplied """
         item = {'name': 'Juice', 'price': '', 'quantity': '10'}
         # create a shopping list
-        res = self.test_shoppinglist()
+        self.test_shoppinglist()
         # create an item
         res = self.client().post("/shoppinglists/1/items",
                                  headers=dict(
@@ -115,7 +114,7 @@ class ShoppingItemsTestCases(BaseTest):
         """ Test API gives an error when no quantity is supplied """
         item = {'name': 'Juice', 'price': '60', 'quantity': ''}
         # create a shopping list
-        res = self.test_shoppinglist()
+        self.test_shoppinglist()
         # create an item
         res = self.client().post("/shoppinglists/1/items",
                                  headers=dict(
@@ -139,7 +138,7 @@ class ShoppingItemsTestCases(BaseTest):
         """ Test API gives an error when negative price is supplied """
         item = {'name': 'Juice', 'price': '-60', 'quantity': '2'}
         # create a shopping list
-        res = self.test_shoppinglist()
+        self.test_shoppinglist()
         # create an item
         res = self.client().post("/shoppinglists/1/items",
                                  headers=dict(
@@ -151,21 +150,19 @@ class ShoppingItemsTestCases(BaseTest):
         """ Test API gives an error when invalid price is supplied """
         item = {'name': 'Juice', 'price': 'one', 'quantity': '2'}
         # create a shopping list
-        res = self.test_shoppinglist()
-        self.assertEqual(res.status_code, 201)
+        self.test_shoppinglist()
         # create an item
         res = self.client().post("/shoppinglists/1/items",
                                  headers=dict(
                                      Authorization="Bearer " + self.access_token),
                                  data=item)
-        self.assertEqual(res.status_code, 400)
         self.assertIn("Invalid price value", str(res.data))
 
     def test_item_creation_invalid_quantity(self):
         """ Test API gives an error when invalid quantity is supplied """
         item = {'name': 'Juice', 'price': '60', 'quantity': 'one'}
         # create a shopping list
-        res = self.test_shoppinglist()
+        self.test_shoppinglist()
         # create an item
         res = self.client().post("/shoppinglists/1/items",
                                  headers=dict(
@@ -177,7 +174,7 @@ class ShoppingItemsTestCases(BaseTest):
         """ Test API gives an error when name has special characters """
         item = {'name': 'Jeep+', 'price': '1000', 'quantity': '10'}
         # create a shopping list
-        res = self.test_shoppinglist()
+        self.test_shoppinglist()
         # create an item
         res = self.client().post("/shoppinglists/1/items",
                                  headers=dict(
@@ -189,7 +186,7 @@ class ShoppingItemsTestCases(BaseTest):
         """ Test API can edit an existing item """
         item = {'name': 'sugar'}
         # create an item
-        res = self.test_shoppingitem()
+        self.test_shoppingitem()
         # edit item
         res2 = self.client().put("/shoppinglists/1/items/1",
                                  headers=dict(
@@ -201,7 +198,7 @@ class ShoppingItemsTestCases(BaseTest):
         """ Test API can edit a non existing item """
         item = {'name': 'sugar'}
         # create a shoppinglist
-        res = self.test_shoppinglist()
+        self.test_shoppinglist()
         # edit non-existing item
         res2 = self.client().put("/shoppinglists/1/items/1",
                                  headers=dict(
@@ -213,7 +210,7 @@ class ShoppingItemsTestCases(BaseTest):
         """ Test API cannot edit with item name having special characters """
         item = {'name': 'Bread!'}
         # create an item
-        res = self.test_shoppingitem()
+        self.test_shoppingitem()
         # edit item
         res2 = self.client().put("/shoppinglists/1/items/1",
                                  headers=dict(
@@ -224,7 +221,7 @@ class ShoppingItemsTestCases(BaseTest):
     def test_api_can_delete_item(self):
         """ Test API can delete an item """
         # create an item
-        res = self.test_shoppingitem()
+        self.test_shoppingitem()
         # delete item
         res2 = self.client().delete("/shoppinglists/1/items/1",
                                     headers=dict(
@@ -244,7 +241,7 @@ class ShoppingItemsTestCases(BaseTest):
     def test_api_can_get_item(self):
         """ Test API can get an item """
         # create an item
-        res = self.test_shoppingitem()
+        self.test_shoppingitem()
         # get item
         res2 = self.client().get("/shoppinglists/1/items/1",
                                  headers=dict(

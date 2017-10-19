@@ -124,7 +124,6 @@ class ShoppinglistTestCase(BaseTest):
         response = self.client().get(
             '/shoppinglists/{}'.format(result_in_json['id']),
             headers=dict(Authorization="Bearer " + self.access_token))
-        self.assertEqual(response.status_code, 200)
         self.assertIn('Back to', str(response.data))
 
     def test_shoppinglist_can_be_edited(self):
