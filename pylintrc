@@ -136,7 +136,7 @@ function-name-hint=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
 function-rgx=(([a-z][a-z0-9_]{2,30})|(_[a-z0-9_]*))$
 
 # Good variable names which should always be accepted, separated by a comma
-good-names=i,j,k,ex,Run,_,db,e,id,dotenv_path,app,config_name,port,register_login_user_create_shoppinglist,test_shoppingitem_negative_limit,test_shoppinglist_negative_limit_provided,test_shoppinglist_negative_page_number_provided,test_shoppingitem_search_non_existing_item,test_api_can_edit_non_existing_item,test_api_can_delete_non_existing_item,test_api_can_get_non_existing_item
+good-names=i,j,k,ex,Run,_,db,e,id,dotenv_path,app,config_name,port,test_get_reset_token_no_email_provided,test_get_reset_token_unregistered_user,test_shoppinglist_edit_with_special_characters,test_list_creation_special_characters,test_api_edit_with_special_characters,test_shoppingitem_negative_page_provided,test_item_creation_with_special_characters,test_item_creation_invalid_quantity,test_item_creation_invalid_price,test_item_creation_negative_price,test_item_creation_negative_quantity,register_login_user_create_shoppinglist,test_shoppingitem_negative_limit,test_shoppinglist_negative_limit_provided,test_shoppinglist_negative_page_number_provided,test_shoppingitem_search_non_existing_item,test_api_can_edit_non_existing_item,test_api_can_delete_non_existing_item,test_api_can_get_non_existing_item
 
 # Include a hint for the correct naming format with invalid-name
 include-naming-hint=no
