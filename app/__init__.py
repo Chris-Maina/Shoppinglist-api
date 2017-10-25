@@ -147,9 +147,9 @@ def create_app(config_name):
         """ Handle user login"""
         if request.method == 'POST':
             email = str(request.data.get('email')
-                       ) if request.data.get('email') else None
+                        ) if request.data.get('email') else None
             password = str(request.data.get('password')
-                          ) if request.data.get('password') else None
+                           ) if request.data.get('password') else None
             if not email:
                 # check if email is empty, status code bad request 400
                 response = {
@@ -211,7 +211,7 @@ def create_app(config_name):
         """Allows a user to get reset token"""
         if request.method == "POST":
             email = str(request.data.get('email')
-                       ) if request.data.get('email') else None
+                        ) if request.data.get('email') else None
             if email:
                 # email has sth
                 # Query to see if a user already exists
@@ -360,7 +360,7 @@ def create_app(config_name):
                     return make_response(jsonify(response)), 400
             else:
                 # default limit value if no limit is specified
-                limit = 10
+                limit = 4
 
             if search_query:
                 # ?q is supplied sth
@@ -420,7 +420,7 @@ def create_app(config_name):
 
         if request.method == "POST":
             name = str(request.data.get('name')
-                      ) if request.data.get('name') else None
+                       ) if request.data.get('name') else None
             if name:
                 # there is a name,
                 # Check for special characters
@@ -570,7 +570,7 @@ def create_app(config_name):
                     return make_response(jsonify(response)), 400
             else:
                 # default limit value if no limit is specified
-                limit = 10
+                limit = 7
 
             if search_query:
                 # ?q is supplied sth
