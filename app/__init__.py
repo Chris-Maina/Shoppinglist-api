@@ -237,7 +237,7 @@ def create_app(config_name):
                 response = {
                     'message': 'User does not exist.'
                 }
-                return make_response(jsonify(response)), 400
+                return make_response(jsonify(response)), 404
             response = {
                 'message': 'Please fill email field.'
             }
