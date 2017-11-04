@@ -181,7 +181,7 @@ class UserTestCases(BaseTest):
         }
         self.register_user()
         res = self.client().post('/user/reset', data=user_email)
-        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.status_code, 404)
 
     def test_get_reset_token_no_email_provided(self):
         """ Test get reset token no email provided"""
