@@ -7,7 +7,8 @@ import jwt
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask import request, jsonify, make_response, redirect
+from flask_mail import Mail, Message
+from flask import request, jsonify, make_response, redirect, current_app
 
 
 # local import
@@ -15,6 +16,7 @@ from instance.config import app_config
 
 # initialize sql-alchemy
 db = SQLAlchemy()
+mail = Mail()
 
 
 def create_app(config_name):
@@ -27,6 +29,7 @@ def create_app(config_name):
     app.config.from_pyfile('config.py')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
+    mail.init_app(app)
 
     def authentication(funct):
         """ Handles authentication of requests using JWT tokens"""
@@ -233,6 +236,19 @@ def create_app(config_name):
                     response = {
                         "reset_token": email_token.decode()
                     }
+                    # Send an email with the reset link
+                    url = str(current_app.config.get('APP_URL')) + \
+                        '/user/reset/password/{}'.format(
+                            str(email_token.decode()))
+                    subject = "Forgot password link"
+                    message = "<p> Hello {} here is the link to reset your password </p><br/><b>{}</b>".format(
+                        str(email),
+                        str(url)
+                    )
+                    msg = Message(recipients=[email],
+                                  html=message, subject=subject)
+                    mail.send(msg)
+
                     return make_response(jsonify(response)), 200
                 response = {
                     'message': 'User does not exist.'
@@ -485,6 +501,14 @@ def create_app(config_name):
                 # there is a name
                 # Check for special characters
                 if re.match("^[a-zA-Z0-9 _]*$", name):
+                    # Check if name exists in db
+                    same_shoppinglist_name = Shoppinglist.query.filter_by(
+                        name=name, created_by=user_id).first()
+                    if same_shoppinglist_name:
+                        response = jsonify({
+                            'message': "List name already exists. Please use different name"
+                        })
+                        return make_response(response), 409
                     shoppinglist.name = name
                     shoppinglist.save()
                     response = jsonify({
@@ -762,6 +786,15 @@ def create_app(config_name):
 
             # Check for special characters
             if re.match("^[a-zA-Z0-9 _]*$", name):
+                # Check if name exists in db
+                same_shoppinglist_item_name = Shoppingitem.query.filter_by(
+                    name=name, in_shoppinglist=sl_id, created_by=user_id).first()
+                if same_shoppinglist_item_name:
+                    response = jsonify({
+                        'message': "Item name already exists. Please use different name"
+                    })
+                    return make_response(response), 409
+
                 item.name = name
                 item.price = price
                 item.quantity = quantity
