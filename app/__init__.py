@@ -787,13 +787,14 @@ def create_app(config_name):
             # Check for special characters
             if re.match("^[a-zA-Z0-9 _]*$", name):
                 # Check if name exists in db
-                same_shoppinglist_item_name = Shoppingitem.query.filter_by(
-                    name=name, in_shoppinglist=sl_id, created_by=user_id).first()
-                if same_shoppinglist_item_name:
-                    response = jsonify({
-                        'message': "Item name already exists. Please use different name"
-                    })
-                    return make_response(response), 409
+                all_shoppinglist_items = Shoppingitem.query.filter_by(
+                    in_shoppinglist=sl_id, created_by=user_id).all()
+                for same_item in all_shoppinglist_items:
+                    if name == same_item.name and tid != same_item.id:
+                        response = jsonify({
+                            'message': "Item name already exists. Please use different name"
+                        })
+                        return make_response(response), 409
 
                 item.name = name
                 item.price = price
