@@ -3,6 +3,7 @@ import re
 import os
 from datetime import datetime, timedelta
 from functools import wraps
+from sqlalchemy import func
 import jwt
 from flask_api import FlaskAPI
 from flask_sqlalchemy import SQLAlchemy
@@ -442,8 +443,9 @@ def create_app(config_name):
                 # Check for special characters
                 if re.match("^[a-zA-Z0-9 _]*$", name):
                     # check if list exists
-                    if Shoppinglist.query.filter_by(
-                            name=name, created_by=user_id).first() is not None:
+                    if Shoppinglist.query.filter(
+                            func.lower(Shoppinglist.name) == name.lower(),
+                            Shoppinglist.created_by == user_id).first() is not None:
                         # list exists, status code= Found
                         response = jsonify({
                             'message': "List name already exists. Please use different name"
@@ -502,13 +504,14 @@ def create_app(config_name):
                 # Check for special characters
                 if re.match("^[a-zA-Z0-9 _]*$", name):
                     # Check if name exists in db
-                    same_shoppinglist_name = Shoppinglist.query.filter_by(
-                        name=name, created_by=user_id).first()
-                    if same_shoppinglist_name:
-                        response = jsonify({
-                            'message': "List name already exists. Please use different name"
-                        })
-                        return make_response(response), 409
+                    all_shoppinglist = Shoppinglist.query.filter_by(
+                        created_by=user_id).all()
+                    for same_list_name in all_shoppinglist:
+                        if name.lower() == same_list_name.name.lower():
+                            response = jsonify({
+                                'message': "List name already exists. Please use different name"
+                            })
+                            return make_response(response), 409
                     shoppinglist.name = name
                     shoppinglist.save()
                     response = jsonify({
@@ -725,13 +728,14 @@ def create_app(config_name):
                 # Check for special characters
                 if re.match("^[a-zA-Z0-9 _]*$", name):
                     # check if item exists
-                    if Shoppingitem.query.filter_by(
-                            name=name, in_shoppinglist=sl_id).first() is not None:
-                        # item exists, status code= Found
-                        response = jsonify({
-                            'message': "Item name already exists. Please use different name"
-                        })
-                        return make_response(response), 302
+                    all_shoppinglist_items = Shoppingitem.query.filter_by(
+                        in_shoppinglist=sl_id, created_by=user_id).all()
+                    for same_item in all_shoppinglist_items:
+                        if name.lower() == same_item.name.lower():
+                            response = jsonify({
+                                'message': "Item name already exists. Please use different name"
+                            })
+                            return make_response(response), 409
 
                     # item does not exist, create and save the item
                     shoppingitem = Shoppingitem(
@@ -790,7 +794,7 @@ def create_app(config_name):
                 all_shoppinglist_items = Shoppingitem.query.filter_by(
                     in_shoppinglist=sl_id, created_by=user_id).all()
                 for same_item in all_shoppinglist_items:
-                    if name == same_item.name and tid != same_item.id:
+                    if name.lower() == same_item.name.lower() and tid != same_item.id:
                         response = jsonify({
                             'message': "Item name already exists. Please use different name"
                         })
