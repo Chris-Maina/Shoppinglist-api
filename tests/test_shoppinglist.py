@@ -138,7 +138,7 @@ class ShoppinglistTestCase(BaseTest):
             data={'name': 'Easter shopping'})
         self.client().put(
             '/shoppinglists/1', headers=dict(Authorization="Bearer " + access_token),
-            data={'name': 'Christmass shopping'})
+            data={'name': 'Christmass'})
         res = self.client().get('/shoppinglists/1',
                                 headers=dict(Authorization="Bearer " + access_token))
         self.assertIn('Christmass', str(res.data))
