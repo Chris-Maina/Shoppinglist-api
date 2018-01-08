@@ -412,7 +412,8 @@ def create_app(config_name):
                 for item in shoppinglists.items:
                     obj = {
                         'id': item.id,
-                        'name': item.name
+                        'name': item.name,
+                        'date_created': item.date_created
                     }
                     all_shopping_lists.append(obj)
                 next_page = 'None'
