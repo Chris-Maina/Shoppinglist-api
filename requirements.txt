@@ -43,6 +43,6 @@ singledispatch==3.4.0.3
 six==1.11.0
 SQLAlchemy==1.2.0b2
 urllib3==1.22
-Werkzeug==0.12.2
+Werkzeug==0.15.3
 wrapt==1.10.11
 yapf==0.18.0
